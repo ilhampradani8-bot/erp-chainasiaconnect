@@ -23,8 +23,21 @@ import {
   calculateIncomeStatement,
   calculateBalanceSheet
 } from '../utils/accountingMath';
+import {
+  fetchAccountsFromDb,
+  fetchTransactionsFromDb,
+  fetchPaperSettingsFromDb,
+  fetchAccessCodeFromDb,
+  saveTransactionToDb,
+  deleteTransactionFromDb,
+  saveAccountToDb,
+  deleteAccountFromDb,
+  savePaperSettingsToDb,
+  saveAccessCodeToDb
+} from '../utils/supabaseClient';
 
 export default function WindowsDesktop() {
+  const [cloudStatus, setCloudStatus] = useState('Connecting...');
   // Access Code & Session Authentication state
   const [storedAccessCode, setStoredAccessCode] = useState(() => {
     try {
@@ -79,7 +92,7 @@ export default function WindowsDesktop() {
   const [isNewJournalOpen, setIsNewJournalOpen] = useState(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
-  // Sync to localStorage
+  // Sync to localStorage and Supabase
   useEffect(() => {
     localStorage.setItem('erp_accounts', JSON.stringify(accounts));
   }, [accounts]);
@@ -90,7 +103,40 @@ export default function WindowsDesktop() {
 
   useEffect(() => {
     localStorage.setItem('erp_paper_settings', JSON.stringify(paperSettings));
+    savePaperSettingsToDb(paperSettings);
   }, [paperSettings]);
+
+  // Load from Supabase Cloud Database on Mount
+  useEffect(() => {
+    async function loadCloudData() {
+      try {
+        const dbAccounts = await fetchAccountsFromDb();
+        if (dbAccounts && dbAccounts.length > 0) {
+          setAccounts(dbAccounts);
+        }
+
+        const dbTx = await fetchTransactionsFromDb();
+        if (dbTx && dbTx.length > 0) {
+          setTransactions(dbTx);
+        }
+
+        const dbPaper = await fetchPaperSettingsFromDb();
+        if (dbPaper) {
+          setPaperSettings(dbPaper);
+        }
+
+        const dbCode = await fetchAccessCodeFromDb();
+        if (dbCode) {
+          setStoredAccessCode(dbCode);
+        }
+
+        setCloudStatus('Supabase Postgres (Connected)');
+      } catch (err) {
+        setCloudStatus('LocalStorage (Offline)');
+      }
+    }
+    loadCloudData();
+  }, []);
 
   // Authentication handlers
   const handleAuthenticateSuccess = () => {
@@ -107,15 +153,40 @@ export default function WindowsDesktop() {
     setIsAuthenticated(false);
   };
 
+  // Update Access Code
+  const handleUpdateAccessCode = (newCode) => {
+    setStoredAccessCode(newCode);
+    localStorage.setItem('erp_access_code', newCode);
+    saveAccessCodeToDb(newCode);
+  };
+
   // Financial Calculations
   const trialBalanceData = calculateTrialBalance(accounts, transactions);
   const incomeData = calculateIncomeStatement(accounts, transactions);
   const balanceSheetData = calculateBalanceSheet(accounts, transactions);
 
   // Handle new transaction saved
-  const handleSaveJournal = (newTx) => {
+  const handleSaveJournal = async (newTx) => {
     const updated = [newTx, ...transactions];
     setTransactions(updated);
+    await saveTransactionToDb(newTx);
+  };
+
+  // Handle transaction deleted
+  const handleDeleteJournal = async (id, voucherNo) => {
+    const updated = transactions.filter(t => t.id !== id);
+    setTransactions(updated);
+    await deleteTransactionFromDb(voucherNo);
+  };
+
+  // Handle account added or edited
+  const handleSaveAccount = async (acc) => {
+    await saveAccountToDb(acc);
+  };
+
+  // Handle account deleted
+  const handleDeleteAccount = async (code) => {
+    await deleteAccountFromDb(code);
   };
 
   // Reset Data to standard initial
@@ -296,7 +367,7 @@ export default function WindowsDesktop() {
             {activeView === 'pengaturankode' && (
               <PengaturanKodeAksesView
                 storedAccessCode={storedAccessCode}
-                setStoredAccessCode={setStoredAccessCode}
+                setStoredAccessCode={handleUpdateAccessCode}
                 onLockSystem={handleLockSystem}
               />
             )}
@@ -331,6 +402,7 @@ export default function WindowsDesktop() {
         setActiveView={setActiveView}
         isBalanced={balanceSheetData.isBalanced}
         difference={balanceSheetData.difference}
+        cloudStatus={cloudStatus}
         onOpenNewJournalModal={() => setIsNewJournalOpen(true)}
       />
 

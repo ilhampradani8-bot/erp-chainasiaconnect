@@ -5,6 +5,7 @@ export default function Taskbar95({
   setActiveView,
   isBalanced,
   difference,
+  cloudStatus,
   onOpenNewJournalModal
 }) {
   const [time, setTime] = useState('');
@@ -217,7 +218,7 @@ export default function Taskbar95({
         height: '24px'
       }}>
         <span style={{ fontSize: '11px', color: '#006600', marginRight: '6px' }}>
-          ● SAK ETAP
+          ● {cloudStatus || 'Supabase Postgres'}
         </span>
         <span style={{ fontSize: '12px' }}>🕒</span>
         <span style={{ fontFamily: 'Courier New, monospace', fontSize: '12px', fontWeight: 'bold' }}>
