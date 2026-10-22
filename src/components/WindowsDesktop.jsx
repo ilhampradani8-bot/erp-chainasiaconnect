@@ -1,0 +1,319 @@
+import React, { useState, useEffect } from 'react';
+import MenuBar95 from './MenuBar95';
+import LeftSidebar from './LeftSidebar';
+import RightSidebar from './RightSidebar';
+import Taskbar95 from './Taskbar95';
+import DashboardView from './DashboardView';
+import JurnalUmumView from './JurnalUmumView';
+import BukuBesarView from './BukuBesarView';
+import NeracaSaldoView from './NeracaSaldoView';
+import LabaRugiView from './LabaRugiView';
+import NeracaView from './NeracaView';
+import BaganAkunView from './BaganAkunView';
+import PengaturanKertasView from './PengaturanKertasView';
+import CadanganView from './CadanganView';
+import NewJournalModal from './NewJournalModal';
+import PrintModal from './PrintModal';
+
+import { INITIAL_ACCOUNTS, INITIAL_TRANSACTIONS, DEFAULT_PAPER_SETTINGS } from '../data/accountingStore';
+import {
+  calculateTrialBalance,
+  calculateIncomeStatement,
+  calculateBalanceSheet
+} from '../utils/accountingMath';
+
+export default function WindowsDesktop() {
+  // Accounts state with LocalStorage persistence
+  const [accounts, setAccounts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('erp_accounts');
+      return saved ? JSON.parse(saved) : INITIAL_ACCOUNTS;
+    } catch {
+      return INITIAL_ACCOUNTS;
+    }
+  });
+
+  // Transactions state with LocalStorage persistence
+  const [transactions, setTransactions] = useState(() => {
+    try {
+      const saved = localStorage.getItem('erp_transactions');
+      return saved ? JSON.parse(saved) : INITIAL_TRANSACTIONS;
+    } catch {
+      return INITIAL_TRANSACTIONS;
+    }
+  });
+
+  // Paper Settings state with LocalStorage persistence
+  const [paperSettings, setPaperSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('erp_paper_settings');
+      return saved ? JSON.parse(saved) : DEFAULT_PAPER_SETTINGS;
+    } catch {
+      return DEFAULT_PAPER_SETTINGS;
+    }
+  });
+
+  // Active view: 'dashboard' | 'jurnal' | 'bukubesar' | 'neracasaldo' | 'labarugi' | 'neraca' | 'baganakun' | 'pengaturankertas' | 'cadangan'
+  const [activeView, setActiveView] = useState('dashboard');
+
+  // Modals state
+  const [isNewJournalOpen, setIsNewJournalOpen] = useState(false);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [showCalculator, setShowCalculator] = useState(true);
+
+  // Sync to localStorage
+  useEffect(() => {
+    localStorage.setItem('erp_accounts', JSON.stringify(accounts));
+  }, [accounts]);
+
+  useEffect(() => {
+    localStorage.setItem('erp_transactions', JSON.stringify(transactions));
+  }, [transactions]);
+
+  useEffect(() => {
+    localStorage.setItem('erp_paper_settings', JSON.stringify(paperSettings));
+  }, [paperSettings]);
+
+  // Financial Calculations
+  const trialBalanceData = calculateTrialBalance(accounts, transactions);
+  const incomeData = calculateIncomeStatement(accounts, transactions);
+  const balanceSheetData = calculateBalanceSheet(accounts, transactions);
+
+  // Handle new transaction saved
+  const handleSaveJournal = (newTx) => {
+    const updated = [newTx, ...transactions];
+    setTransactions(updated);
+  };
+
+  // Reset Data to standard initial
+  const handleResetData = () => {
+    if (confirm('Apakah Anda yakin ingin mengatur ulang semua data pembukuan ke default awal PT Chain Asia Connect?')) {
+      setAccounts(INITIAL_ACCOUNTS);
+      setTransactions(INITIAL_TRANSACTIONS);
+      setPaperSettings(DEFAULT_PAPER_SETTINGS);
+      localStorage.removeItem('erp_scratchpad');
+      alert('Data sistem berhasil direset ke standar!');
+    }
+  };
+
+  // Export JSON
+  const handleExportJson = () => {
+    const data = { accounts, transactions, paperSettings, exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ERP_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Import JSON trigger
+  const handleImportJson = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const parsed = JSON.parse(event.target.result);
+          if (parsed.accounts && parsed.transactions) {
+            setAccounts(parsed.accounts);
+            setTransactions(parsed.transactions);
+            if (parsed.paperSettings) setPaperSettings(parsed.paperSettings);
+            alert('Database berhasil diimpor!');
+          }
+        } catch (err) {
+          alert('Gagal membaca JSON: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
+  return (
+    <div style={{
+      width: '100vw',
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+      backgroundColor: 'var(--color-desktop-teal)'
+    }}>
+      {/* 1. Main Windows 90s Application Window Frame */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        margin: '2px 2px 0 2px',
+        backgroundColor: 'var(--color-silver)',
+        borderTop: '2px solid var(--color-platinum)',
+        borderLeft: '2px solid var(--color-platinum)',
+        borderRight: '2px solid var(--color-black)',
+        borderBottom: '2px solid var(--color-black)',
+        boxShadow: '1px 1px 0px #000, inset 1px 1px 0px #fff',
+        overflow: 'hidden'
+      }}>
+        {/* Top Titlebar, Menus & Action Toolbar */}
+        <MenuBar95
+          activeView={activeView}
+          setActiveView={setActiveView}
+          onOpenNewJournalModal={() => setIsNewJournalOpen(true)}
+          onPrint={() => setIsPrintModalOpen(true)}
+          onExportJson={handleExportJson}
+          onImportJson={handleImportJson}
+          onResetData={handleResetData}
+          onToggleCalculator={() => setShowCalculator(!showCalculator)}
+          onRefresh={() => window.location.reload()}
+        />
+
+        {/* Workspace Body: Left Sidebar + Center Content Page + Right Sidebar */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          overflow: 'hidden',
+          backgroundColor: '#c0c0c0'
+        }}>
+          {/* Left Sidebar: Accounting Module Tree & Live Liquidity */}
+          <LeftSidebar
+            activeView={activeView}
+            setActiveView={setActiveView}
+            accounts={accounts}
+            transactions={transactions}
+            onOpenNewJournalModal={() => setIsNewJournalOpen(true)}
+          />
+
+          {/* Center Main Workspace */}
+          <main style={{
+            flex: 1,
+            overflowY: 'auto',
+            backgroundColor: '#d4d0c8',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            {activeView === 'dashboard' && (
+              <DashboardView
+                incomeData={incomeData}
+                balanceSheetData={balanceSheetData}
+                trialBalanceData={trialBalanceData}
+                transactions={transactions}
+                accounts={accounts}
+                onNavigate={setActiveView}
+              />
+            )}
+
+            {activeView === 'jurnal' && (
+              <JurnalUmumView
+                transactions={transactions}
+                setTransactions={setTransactions}
+                accounts={accounts}
+                onOpenNewModal={() => setIsNewJournalOpen(true)}
+              />
+            )}
+
+            {activeView === 'bukubesar' && (
+              <BukuBesarView
+                accounts={accounts}
+                transactions={transactions}
+                onPrint={() => setIsPrintModalOpen(true)}
+              />
+            )}
+
+            {activeView === 'neracasaldo' && (
+              <NeracaSaldoView
+                trialBalanceData={trialBalanceData}
+                onPrint={() => setIsPrintModalOpen(true)}
+              />
+            )}
+
+            {activeView === 'labarugi' && (
+              <LabaRugiView
+                incomeData={incomeData}
+                onPrint={() => setIsPrintModalOpen(true)}
+              />
+            )}
+
+            {activeView === 'neraca' && (
+              <NeracaView
+                balanceSheetData={balanceSheetData}
+                onPrint={() => setIsPrintModalOpen(true)}
+              />
+            )}
+
+            {activeView === 'baganakun' && (
+              <BaganAkunView
+                accounts={accounts}
+                setAccounts={setAccounts}
+                transactions={transactions}
+              />
+            )}
+
+            {activeView === 'pengaturankertas' && (
+              <PengaturanKertasView
+                paperSettings={paperSettings}
+                setPaperSettings={setPaperSettings}
+                onPrintPreview={() => setIsPrintModalOpen(true)}
+              />
+            )}
+
+            {activeView === 'cadangan' && (
+              <CadanganView
+                accounts={accounts}
+                setAccounts={setAccounts}
+                transactions={transactions}
+                setTransactions={setTransactions}
+                paperSettings={paperSettings}
+                setPaperSettings={setPaperSettings}
+                onResetDefault={handleResetData}
+              />
+            )}
+          </main>
+
+          {/* Right Sidebar: Calculator, Audit Inspector, Quick Paper Switcher & Scratchpad */}
+          <RightSidebar
+            paperSettings={paperSettings}
+            setPaperSettings={setPaperSettings}
+            onPrintPreview={() => setIsPrintModalOpen(true)}
+            trialBalanceData={trialBalanceData}
+            balanceSheetData={balanceSheetData}
+            showCalculator={showCalculator}
+            setShowCalculator={setShowCalculator}
+          />
+        </div>
+      </div>
+
+      {/* 2. Bottom Windows 95 Taskbar */}
+      <Taskbar95
+        activeView={activeView}
+        setActiveView={setActiveView}
+        isBalanced={balanceSheetData.isBalanced}
+        difference={balanceSheetData.difference}
+        onOpenNewJournalModal={() => setIsNewJournalOpen(true)}
+      />
+
+      {/* 3. Modal Dialogs */}
+      <NewJournalModal
+        isOpen={isNewJournalOpen}
+        onClose={() => setIsNewJournalOpen(false)}
+        accounts={accounts}
+        onSave={handleSaveJournal}
+      />
+
+      <PrintModal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        paperSettings={paperSettings}
+        activeView={activeView}
+        incomeData={incomeData}
+        balanceSheetData={balanceSheetData}
+        trialBalanceData={trialBalanceData}
+        transactions={transactions}
+        accounts={accounts}
+      />
+    </div>
+  );
+}
