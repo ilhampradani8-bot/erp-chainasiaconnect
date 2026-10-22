@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { PlusCircle, Search, Trash2, Printer, CheckCircle2, AlertCircle } from 'lucide-react';
+import { PlusCircle, Search, Edit3, Trash2, Printer, CheckCircle2, AlertCircle } from 'lucide-react';
 import { formatRupiah, formatNumber } from '../utils/accountingMath';
 
 export default function JurnalUmumView({
   transactions,
   setTransactions,
   accounts,
-  onOpenNewModal
+  onOpenNewModal,
+  onEditTransaction,
+  onDeleteTransaction
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -25,11 +27,15 @@ export default function JurnalUmumView({
     return matchesSearch && matchesStart && matchesEnd;
   });
 
-  const handleDeleteTransaction = (id, voucherNo) => {
+  const handleDelete = (id, voucherNo) => {
     if (confirm(`Yakin ingin membatalkan dan menghapus jurnal bukti "${voucherNo}"?`)) {
-      const updated = transactions.filter(t => t.id !== id);
-      setTransactions(updated);
-      localStorage.setItem('erp_transactions', JSON.stringify(updated));
+      if (onDeleteTransaction) {
+        onDeleteTransaction(id, voucherNo);
+      } else {
+        const updated = transactions.filter(t => t.id !== id);
+        setTransactions(updated);
+        localStorage.setItem('erp_transactions', JSON.stringify(updated));
+      }
     }
   };
 
@@ -62,7 +68,7 @@ export default function JurnalUmumView({
         justifyContent: 'space-between',
         gap: '8px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
           <button onClick={onOpenNewModal} className="btn-primary" style={{ padding: '4px 12px' }}>
             <PlusCircle size={13} color="#00007c" />
             <span>+ Entri Jurnal Baru</span>
@@ -70,7 +76,7 @@ export default function JurnalUmumView({
 
           <div style={{ width: '1px', height: '20px', backgroundColor: 'var(--color-gray)' }} />
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px', fontSize: '11px' }}>
             <span>Periode:</span>
             <input
               type="date"
@@ -100,37 +106,55 @@ export default function JurnalUmumView({
             placeholder="Cari voucher / keterangan..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '220px', padding: '3px 6px' }}
+            style={{ width: '180px', maxWidth: '100%', padding: '3px 6px' }}
           />
         </div>
       </div>
 
+      {/* Info Notice: Click Row to Edit */}
+      <div style={{
+        backgroundColor: '#e6f0fa',
+        border: '1px solid #99c2ff',
+        padding: '3px 8px',
+        fontSize: '10.5px',
+        color: '#003366',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px'
+      }}>
+        <span>💡 <strong>Tips:</strong> Klik baris transaksi mana saja untuk membuka popup pengubahan (edit) jurnal.</span>
+      </div>
+
       {/* 2. Spreadsheet Table of Journal Entries */}
-      <div className="excel-table-container" style={{ flex: 1, minHeight: '300px' }}>
-        <table className="excel-table">
+      <div className="excel-table-container" style={{ flex: 1, minHeight: '260px' }}>
+        <table className="excel-table" style={{ minWidth: '700px' }}>
           <thead>
             <tr>
               <th style={{ width: '85px' }}>Tanggal</th>
-              <th style={{ width: '110px' }}>No. Voucher</th>
+              <th style={{ width: '115px' }}>No. Voucher</th>
               <th>Keterangan / Akun Perkiraan (Indented)</th>
               <th style={{ width: '100px' }}>Ref / Bukti</th>
               <th style={{ width: '130px', textAlign: 'right' }}>Debit (IDR)</th>
               <th style={{ width: '130px', textAlign: 'right' }}>Kredit (IDR)</th>
-              <th style={{ width: '60px', textAlign: 'center' }}>Aksi</th>
+              <th style={{ width: '90px', textAlign: 'center' }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: 'center', padding: '24px', color: '#666' }}>
-                  Tidak ada transaksi jurnal yang cocok dengan filter.
+                  Belum ada transaksi jurnal pembukuan. Klik tombol <strong>+ Entri Jurnal Baru</strong> di atas untuk membuat transaksi pertama.
                 </td>
               </tr>
             ) : (
               filtered.map((tx) => (
                 <React.Fragment key={tx.id}>
-                  {/* Voucher Header Row */}
-                  <tr style={{ backgroundColor: '#f0f0f0', fontWeight: 'bold' }}>
+                  {/* Voucher Header Row - Clickable to Edit */}
+                  <tr
+                    onClick={() => onEditTransaction && onEditTransaction(tx)}
+                    title="Klik baris ini untuk mengedit voucher transaksi"
+                    style={{ backgroundColor: '#f0f0f0', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
                     <td style={{ borderBottom: 'none' }}>{tx.date}</td>
                     <td style={{ fontFamily: 'Courier New, monospace', color: 'var(--color-navy-blue)', borderBottom: 'none' }}>
                       {tx.voucherNo}
@@ -143,22 +167,38 @@ export default function JurnalUmumView({
                     </td>
                     <td style={{ borderBottom: 'none' }}></td>
                     <td style={{ borderBottom: 'none' }}></td>
-                    <td style={{ textAlign: 'center', borderBottom: 'none' }}>
-                      <button
-                        onClick={() => handleDeleteTransaction(tx.id, tx.voucherNo)}
-                        title="Hapus Jurnal Ini"
-                        style={{ padding: '1px 4px', fontSize: '10px', color: '#b00' }}
-                      >
-                        ✕
-                      </button>
+                    <td style={{ textAlign: 'center', borderBottom: 'none' }} onClick={(e) => e.stopPropagation()}>
+                      <div style={{ display: 'inline-flex', gap: '3px' }}>
+                        <button
+                          type="button"
+                          onClick={() => onEditTransaction && onEditTransaction(tx)}
+                          title="Ubah Jurnal Ini"
+                          style={{ padding: '1px 5px', fontSize: '10px', color: '#00007c' }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(tx.id, tx.voucherNo)}
+                          title="Hapus Jurnal Ini"
+                          style={{ padding: '1px 5px', fontSize: '10px', color: '#b00' }}
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </td>
                   </tr>
 
-                  {/* Line Items Rows */}
+                  {/* Line Items Rows - Also Clickable to Edit */}
                   {tx.lines.map((line, lIdx) => {
                     const isCredit = Number(line.credit) > 0;
                     return (
-                      <tr key={`${tx.id}-${lIdx}`} style={{ backgroundColor: '#ffffff' }}>
+                      <tr
+                        key={`${tx.id}-${lIdx}`}
+                        onClick={() => onEditTransaction && onEditTransaction(tx)}
+                        title="Klik untuk mengedit voucher transaksi ini"
+                        style={{ backgroundColor: '#ffffff', cursor: 'pointer' }}
+                      >
                         <td style={{ borderTop: 'none', color: 'transparent' }}>.</td>
                         <td style={{ borderTop: 'none', color: 'transparent' }}>.</td>
                         <td style={{ paddingLeft: isCredit ? '30px' : '10px' }}>
@@ -218,7 +258,9 @@ export default function JurnalUmumView({
         padding: '3px 8px',
         fontSize: '11px',
         display: 'flex',
-        justifyContent: 'space-between'
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        gap: '4px'
       }}>
         <span>Total Voucher Ditampilkan: {filtered.length} Dokumen</span>
         <span>Keseimbangan Jurnal: {totalDebitFiltered === totalCreditFiltered ? 'SEIMBANG (Debit = Kredit)' : 'TIDAK SEIMBANG'}</span>

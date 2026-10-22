@@ -13,7 +13,8 @@ import {
   Wallet,
   Building,
   CreditCard,
-  KeyRound
+  KeyRound,
+  X
 } from 'lucide-react';
 import { formatRupiah } from '../utils/accountingMath';
 
@@ -22,7 +23,9 @@ export default function LeftSidebar({
   setActiveView,
   accounts,
   transactions,
-  onOpenNewJournalModal
+  onOpenNewJournalModal,
+  mobileOpen = false,
+  onCloseMobile
 }) {
   // Calculate quick balances for Cash and Bank
   const getAccountBalance = (code) => {
@@ -57,17 +60,20 @@ export default function LeftSidebar({
   ];
 
   return (
-    <aside style={{
-      width: '230px',
-      minWidth: '230px',
-      backgroundColor: 'var(--color-silver)',
-      borderRight: '2px solid var(--color-black)',
-      boxShadow: 'inset 1px 0 0 #fff',
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      userSelect: 'none'
-    }}>
+    <aside
+      className={`win-sidebar-left ${mobileOpen ? 'mobile-open' : ''}`}
+      style={{
+        width: '230px',
+        minWidth: '230px',
+        backgroundColor: 'var(--color-silver)',
+        borderRight: '2px solid var(--color-black)',
+        boxShadow: 'inset 1px 0 0 #fff',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        userSelect: 'none'
+      }}
+    >
       {/* Sidebar Header */}
       <div style={{
         backgroundColor: 'var(--color-navy-blue)',
@@ -80,13 +86,27 @@ export default function LeftSidebar({
         justifyContent: 'space-between'
       }}>
         <span>📁 Modul Akuntansi ERP</span>
-        <span style={{ fontSize: '10px' }}>v2.4</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <span style={{ fontSize: '10px' }}>v2.4</span>
+          {onCloseMobile && (
+            <button
+              onClick={onCloseMobile}
+              className="win-ctrl-btn mobile-only-btn"
+              title="Tutup Menu"
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Action Button: Quick Add Journal */}
       <div style={{ padding: '6px' }}>
         <button
-          onClick={onOpenNewJournalModal}
+          onClick={() => {
+            onOpenNewJournalModal();
+            if (onCloseMobile) onCloseMobile();
+          }}
           className="btn-primary"
           style={{ width: '100%', padding: '5px 8px', justifyContent: 'center' }}
         >
@@ -115,12 +135,15 @@ export default function LeftSidebar({
             return (
               <div
                 key={item.id}
-                onClick={() => setActiveView(item.id)}
+                onClick={() => {
+                  setActiveView(item.id);
+                  if (onCloseMobile) onCloseMobile();
+                }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '4px 6px',
+                  padding: '5px 6px',
                   cursor: 'pointer',
                   backgroundColor: isActive ? 'var(--color-navy-blue)' : 'transparent',
                   color: isActive ? '#ffffff' : '#000000',

@@ -255,6 +255,7 @@ input[type="checkbox"], input[type="radio"] {
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 6px;
 }
 
 .modal-card {
@@ -264,9 +265,9 @@ input[type="checkbox"], input[type="radio"] {
   border-right: 2px solid var(--color-black) !important;
   border-bottom: 2px solid var(--color-black) !important;
   box-shadow: 2px 2px 0px 0px var(--color-black), inset 1px 1px 0px var(--color-platinum), inset -1px -1px 0px var(--color-gray) !important;
-  min-width: 320px;
-  max-width: 90vw;
-  max-height: 90vh;
+  min-width: 300px;
+  max-width: 95vw;
+  max-height: 92vh;
   display: flex;
   flex-direction: column;
 }
@@ -326,8 +327,8 @@ input[type="checkbox"], input[type="radio"] {
 
 /* Scrollbars Retro Windows 95 Style */
 ::-webkit-scrollbar {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   background-color: #dfdfdf;
 }
 
@@ -350,8 +351,8 @@ input[type="checkbox"], input[type="radio"] {
   border-left: 1px solid var(--color-platinum);
   border-right: 1px solid var(--color-black);
   border-bottom: 1px solid var(--color-black);
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 
 /* Status Badges */
@@ -401,5 +402,97 @@ fieldset.win-fieldset legend {
     border: none !important;
     box-shadow: none !important;
     background: transparent !important;
+  }
+}
+
+/* ==========================================================================
+   Mobile & Responsive Adaptations (Supaya Tampilan HP Rapi & Tidak Hancur)
+   ========================================================================== */
+.mobile-only-btn {
+  display: none;
+}
+.mobile-drawer-backdrop {
+  display: none;
+}
+
+@media screen and (max-width: 900px) {
+  /* Layout container */
+  .desktop-workspace {
+    position: relative !important;
+  }
+
+  /* Sidebars become slide-out drawer overlays */
+  .win-sidebar-left {
+    position: fixed !important;
+    top: 55px !important;
+    left: 0 !important;
+    bottom: 30px !important;
+    z-index: 600 !important;
+    width: 260px !important;
+    box-shadow: 4px 0px 16px rgba(0,0,0,0.6) !important;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease-in-out !important;
+  }
+  .win-sidebar-left.mobile-open {
+    transform: translateX(0) !important;
+  }
+
+  .win-sidebar-right {
+    position: fixed !important;
+    top: 55px !important;
+    right: 0 !important;
+    bottom: 30px !important;
+    z-index: 600 !important;
+    width: 270px !important;
+    box-shadow: -4px 0px 16px rgba(0,0,0,0.6) !important;
+    transform: translateX(100%);
+    transition: transform 0.25s ease-in-out !important;
+  }
+  .win-sidebar-right.mobile-open {
+    transform: translateX(0) !important;
+  }
+
+  /* Mobile Drawer Backdrop */
+  .mobile-drawer-backdrop {
+    display: block !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 30px !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    z-index: 550 !important;
+  }
+
+  /* Show Mobile Sidebar Toggle Buttons */
+  .mobile-only-btn {
+    display: inline-flex !important;
+  }
+
+  /* Modal cards fit mobile viewport */
+  .modal-card {
+    width: 96vw !important;
+    max-width: 96vw !important;
+    max-height: 94vh !important;
+    margin: 4px !important;
+  }
+
+  /* Excel tables scroll smoothly on touch devices */
+  .excel-table-container {
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  /* Toolbar buttons wrap cleanly */
+  .win-toolbar {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  /* Smaller screens */
+  .modal-body {
+    padding: 6px !important;
   }
 }

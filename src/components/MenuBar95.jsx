@@ -19,7 +19,9 @@ export default function MenuBar95({
   onImportJson,
   onResetData,
   onLockSystem,
-  onRefresh
+  onRefresh,
+  onToggleMobileLeft,
+  onToggleMobileRight
 }) {
   const [openMenu, setOpenMenu] = useState(null);
   const menuRef = useRef(null);
@@ -176,7 +178,7 @@ export default function MenuBar95({
       </div>
 
       {/* 3. Action Toolbar - Cleaned (No redundant navigation, centralized to sidebar) */}
-      <div style={{
+      <div className="win-toolbar" style={{
         display: 'flex',
         alignItems: 'center',
         gap: '6px',
@@ -185,17 +187,20 @@ export default function MenuBar95({
         borderBottom: '1px solid var(--color-platinum)',
         boxShadow: 'inset 0 1px 0 #fff, 0 1px 0 #808080'
       }}>
+        {/* Mobile Sidebar Toggle Button */}
+        <button onClick={onToggleMobileLeft} className="mobile-only-btn" title="Buka Navigasi Modul (Mobile)">
+          <span>☰ Menu</span>
+        </button>
+
         <button onClick={onOpenNewJournalModal} className="btn-primary" title="Tambah Entri Jurnal Baru">
           <PlusCircle size={13} color="#00007c" />
-          <span>+ Jurnal Transaksi Baru</span>
+          <span>+ Jurnal Baru</span>
         </button>
 
         <button onClick={onPrint} title="Cetak Dokumen Sesuai Format Kertas">
           <Printer size={13} />
-          <span>Cetak Laporan</span>
+          <span>Cetak</span>
         </button>
-
-        <div style={{ width: '1px', height: '18px', backgroundColor: 'var(--color-gray)', margin: '0 4px' }} />
 
         <button onClick={onRefresh} title="Segarkan Data Halaman">
           <RefreshCw size={13} />
@@ -204,9 +209,14 @@ export default function MenuBar95({
 
         <div style={{ flex: 1 }}></div>
 
+        {/* Mobile Right Tools Toggle Button */}
+        <button onClick={onToggleMobileRight} className="mobile-only-btn" title="Buka Panel Inspeksi & Alat (Mobile)">
+          <span>🛠️ Alat</span>
+        </button>
+
         <button onClick={onLockSystem} title="Kunci Sesi Akses Sekarang" style={{ color: '#00007c' }}>
           <Lock size={12} />
-          <span>Kunci Layar (Lock)</span>
+          <span>Lock</span>
         </button>
       </div>
     </div>

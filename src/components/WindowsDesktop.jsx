@@ -90,7 +90,22 @@ export default function WindowsDesktop() {
 
   // Modals state
   const [isNewJournalOpen, setIsNewJournalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState(null);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+
+  // Mobile drawer states
+  const [mobileLeftOpen, setMobileLeftOpen] = useState(false);
+  const [mobileRightOpen, setMobileRightOpen] = useState(false);
+
+  const handleOpenNewJournal = () => {
+    setEditingTransaction(null);
+    setIsNewJournalOpen(true);
+  };
+
+  const handleEditTransaction = (tx) => {
+    setEditingTransaction(tx);
+    setIsNewJournalOpen(true);
+  };
 
   // Sync to localStorage and Supabase
   useEffect(() => {
@@ -165,11 +180,16 @@ export default function WindowsDesktop() {
   const incomeData = calculateIncomeStatement(accounts, transactions);
   const balanceSheetData = calculateBalanceSheet(accounts, transactions);
 
-  // Handle new transaction saved
-  const handleSaveJournal = async (newTx) => {
-    const updated = [newTx, ...transactions];
+  // Handle transaction saved (New or Edit)
+  const handleSaveJournal = async (txPayload, isEdit = false) => {
+    let updated;
+    if (isEdit) {
+      updated = transactions.map(t => (t.id === txPayload.id || t.voucherNo === txPayload.voucherNo) ? txPayload : t);
+    } else {
+      updated = [txPayload, ...transactions];
+    }
     setTransactions(updated);
-    await saveTransactionToDb(newTx);
+    await saveTransactionToDb(txPayload);
   };
 
   // Handle transaction deleted
@@ -265,14 +285,20 @@ export default function WindowsDesktop() {
         {/* Top Titlebar, Menus & Action Toolbar */}
         <MenuBar95
           activeView={activeView}
-          setActiveView={setActiveView}
-          onOpenNewJournalModal={() => setIsNewJournalOpen(true)}
+          setActiveView={(v) => {
+            setActiveView(v);
+            setMobileLeftOpen(false);
+            setMobileRightOpen(false);
+          }}
+          onOpenNewJournalModal={handleOpenNewJournal}
           onPrint={() => setIsPrintModalOpen(true)}
           onExportJson={handleExportJson}
           onImportJson={handleImportJson}
           onResetData={handleResetData}
           onLockSystem={handleLockSystem}
           onRefresh={() => window.location.reload()}
+          onToggleMobileLeft={() => setMobileLeftOpen(prev => !prev)}
+          onToggleMobileRight={() => setMobileRightOpen(prev => !prev)}
         />
 
         {/* Workspace Body: Left Sidebar + Center Content Page + Right Sidebar */}
@@ -280,15 +306,32 @@ export default function WindowsDesktop() {
           flex: 1,
           display: 'flex',
           overflow: 'hidden',
-          backgroundColor: '#c0c0c0'
+          backgroundColor: '#c0c0c0',
+          position: 'relative'
         }}>
+          {/* Mobile Overlay Backdrop */}
+          {(mobileLeftOpen || mobileRightOpen) && (
+            <div
+              className="mobile-drawer-backdrop"
+              onClick={() => {
+                setMobileLeftOpen(false);
+                setMobileRightOpen(false);
+              }}
+            />
+          )}
+
           {/* Left Sidebar: Accounting Module Tree & Live Liquidity (Central Navigation) */}
           <LeftSidebar
             activeView={activeView}
-            setActiveView={setActiveView}
+            setActiveView={(v) => {
+              setActiveView(v);
+              setMobileLeftOpen(false);
+            }}
             accounts={accounts}
             transactions={transactions}
-            onOpenNewJournalModal={() => setIsNewJournalOpen(true)}
+            onOpenNewJournalModal={handleOpenNewJournal}
+            mobileOpen={mobileLeftOpen}
+            onCloseMobile={() => setMobileLeftOpen(false)}
           />
 
           {/* Center Main Workspace */}
@@ -315,7 +358,9 @@ export default function WindowsDesktop() {
                 transactions={transactions}
                 setTransactions={setTransactions}
                 accounts={accounts}
-                onOpenNewModal={() => setIsNewJournalOpen(true)}
+                onOpenNewModal={handleOpenNewJournal}
+                onEditTransaction={handleEditTransaction}
+                onDeleteTransaction={handleDeleteJournal}
               />
             )}
 
@@ -392,6 +437,8 @@ export default function WindowsDesktop() {
             onPrintPreview={() => setIsPrintModalOpen(true)}
             balanceSheetData={balanceSheetData}
             onLockSystem={handleLockSystem}
+            mobileOpen={mobileRightOpen}
+            onCloseMobile={() => setMobileRightOpen(false)}
           />
         </div>
       </div>
@@ -403,15 +450,19 @@ export default function WindowsDesktop() {
         isBalanced={balanceSheetData.isBalanced}
         difference={balanceSheetData.difference}
         cloudStatus={cloudStatus}
-        onOpenNewJournalModal={() => setIsNewJournalOpen(true)}
+        onOpenNewJournalModal={handleOpenNewJournal}
       />
 
       {/* 3. Modal Dialogs */}
       <NewJournalModal
         isOpen={isNewJournalOpen}
-        onClose={() => setIsNewJournalOpen(false)}
+        onClose={() => {
+          setIsNewJournalOpen(false);
+          setEditingTransaction(null);
+        }}
         accounts={accounts}
         onSave={handleSaveJournal}
+        editingTransaction={editingTransaction}
       />
 
       <PrintModal

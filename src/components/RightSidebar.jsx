@@ -7,7 +7,9 @@ export default function RightSidebar({
   setPaperSettings,
   onPrintPreview,
   balanceSheetData,
-  onLockSystem
+  onLockSystem,
+  mobileOpen = false,
+  onCloseMobile
 }) {
   const [scratchpad, setScratchpad] = useState(() => {
     return localStorage.getItem('erp_scratchpad') || 'Catatan Auditor:\n- Periksa bukti potong PPh 23\n- Rekonsiliasi Bank Mandiri akhir bulan\n- Siapkan invoice kargo kontainer';
@@ -31,20 +33,23 @@ export default function RightSidebar({
   };
 
   return (
-    <aside style={{
-      width: '260px',
-      minWidth: '260px',
-      backgroundColor: 'var(--color-silver)',
-      borderLeft: '2px solid var(--color-platinum)',
-      boxShadow: 'inset 1px 0 0 var(--color-gray)',
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      overflowY: 'auto',
-      padding: '6px',
-      gap: '6px',
-      userSelect: 'none'
-    }}>
+    <aside
+      className={`win-sidebar-right ${mobileOpen ? 'mobile-open' : ''}`}
+      style={{
+        width: '260px',
+        minWidth: '260px',
+        backgroundColor: 'var(--color-silver)',
+        borderLeft: '2px solid var(--color-platinum)',
+        boxShadow: 'inset 1px 0 0 var(--color-gray)',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        overflowY: 'auto',
+        padding: '6px',
+        gap: '6px',
+        userSelect: 'none'
+      }}
+    >
       {/* 1. Header Inspector */}
       <div style={{
         backgroundColor: 'var(--color-navy-blue)',
@@ -57,14 +62,25 @@ export default function RightSidebar({
         justifyContent: 'space-between'
       }}>
         <span>🛠️ Panel Inspeksi & Alat</span>
-        <button
-          onClick={onLockSystem}
-          title="Kunci Akses Sistem ERP"
-          style={{ padding: '1px 5px', fontSize: '9.5px', display: 'flex', alignItems: 'center', gap: '3px' }}
-        >
-          <Lock size={10} />
-          <span>Lock</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+          <button
+            onClick={onLockSystem}
+            title="Kunci Akses Sistem ERP"
+            style={{ padding: '1px 5px', fontSize: '9.5px', display: 'flex', alignItems: 'center', gap: '3px' }}
+          >
+            <Lock size={10} />
+            <span>Lock</span>
+          </button>
+          {onCloseMobile && (
+            <button
+              onClick={onCloseMobile}
+              className="win-ctrl-btn mobile-only-btn"
+              title="Tutup Panel"
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 2. Quick Balance & Audit Card */}
