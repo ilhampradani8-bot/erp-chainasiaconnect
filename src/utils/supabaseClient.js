@@ -88,10 +88,11 @@ export async function fetchTransactionsFromDb() {
       .select('*')
       .order('line_order', { ascending: true });
 
-    if (errLines) throw errLines;
+    if (!entries || entries.length === 0) {
+      return [];
+    }
 
-    if (entries && entries.length > 0) {
-      const lineMap = {};
+    const lineMap = {};
       lines.forEach(l => {
         if (!lineMap[l.journal_id]) lineMap[l.journal_id] = [];
         lineMap[l.journal_id].push({
@@ -110,7 +111,6 @@ export async function fetchTransactionsFromDb() {
         reference: e.reference,
         lines: lineMap[e.id] || []
       }));
-    }
   } catch (err) {
     console.warn('[Supabase] Failed to fetch transactions from DB, using local state:', err.message);
   }

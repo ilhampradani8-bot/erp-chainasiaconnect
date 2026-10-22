@@ -116,7 +116,7 @@ export default function WindowsDesktop() {
         }
 
         const dbTx = await fetchTransactionsFromDb();
-        if (dbTx && dbTx.length > 0) {
+        if (dbTx !== null) {
           setTransactions(dbTx);
         }
 
