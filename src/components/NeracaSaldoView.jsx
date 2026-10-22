@@ -79,7 +79,7 @@ export default function NeracaSaldoView({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Scale size={16} color={isBalanced ? '#166534' : '#991b1b'} />
           <span>
-            <strong>NERACA SALDO (TRIAL BALANCE) PERIODE OKTOBER 2026</strong> - Standar Akuntansi Keuangan
+            <strong>NERACA SALDO (TRIAL BALANCE) PERIODE {new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date()).toUpperCase()}</strong> - Standar Akuntansi Keuangan (SAK ETAP)
           </span>
         </div>
 

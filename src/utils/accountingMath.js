@@ -172,53 +172,63 @@ export const calculateBalanceSheet = (accounts, transactions) => {
 
   const income = calculateIncomeStatement(accounts, transactions);
 
-  // Aset Lancar
-  const currentAssets = accounts.filter(a => a.category === 'ASET' && a.subCategory === 'Aset Lancar').map(acc => {
-    const r = trialMap[acc.code];
-    const amount = acc.normalBalance === 'D' ? (r.finalDebit - r.finalCredit) : (r.finalCredit - r.finalDebit);
-    return { ...acc, amount };
-  });
+  // Aset Lancar: Accounts in ASET where subCategory is 'Aset Lancar' or code starts with '1-1'
+  const currentAssets = accounts
+    .filter(a => a.category === 'ASET' && (a.subCategory === 'Aset Lancar' || a.code.startsWith('1-1')))
+    .map(acc => {
+      const r = trialMap[acc.code] || { finalDebit: 0, finalCredit: 0 };
+      const amount = (r.finalDebit || 0) - (r.finalCredit || 0);
+      return { ...acc, amount };
+    });
   const totalCurrentAssets = currentAssets.reduce((sum, a) => sum + a.amount, 0);
 
-  // Aset Tetap
-  const fixedAssets = accounts.filter(a => a.category === 'ASET' && a.subCategory === 'Aset Tetap').map(acc => {
-    const r = trialMap[acc.code];
-    const amount = acc.normalBalance === 'D' ? (r.finalDebit - r.finalCredit) : -(r.finalCredit - r.finalDebit);
-    return { ...acc, amount };
-  });
+  // Aset Tetap: Accounts in ASET not in currentAssets
+  const fixedAssets = accounts
+    .filter(a => a.category === 'ASET' && !(a.subCategory === 'Aset Lancar' || a.code.startsWith('1-1')))
+    .map(acc => {
+      const r = trialMap[acc.code] || { finalDebit: 0, finalCredit: 0 };
+      const amount = (r.finalDebit || 0) - (r.finalCredit || 0);
+      return { ...acc, amount };
+    });
   const totalFixedAssets = fixedAssets.reduce((sum, a) => sum + a.amount, 0);
   const totalAssets = totalCurrentAssets + totalFixedAssets;
 
-  // Kewajiban Lancar
-  const currentLiabilities = accounts.filter(a => a.category === 'KEWAJIBAN' && a.subCategory === 'Kewajiban Lancar').map(acc => {
-    const r = trialMap[acc.code];
-    const amount = acc.normalBalance === 'K' ? (r.finalCredit - r.finalDebit) : (r.finalDebit - r.finalCredit);
-    return { ...acc, amount };
-  });
+  // Kewajiban Lancar: Accounts in KEWAJIBAN where subCategory is 'Kewajiban Lancar' or code starts with '2-1'
+  const currentLiabilities = accounts
+    .filter(a => a.category === 'KEWAJIBAN' && (a.subCategory === 'Kewajiban Lancar' || a.code.startsWith('2-1')))
+    .map(acc => {
+      const r = trialMap[acc.code] || { finalDebit: 0, finalCredit: 0 };
+      const amount = (r.finalCredit || 0) - (r.finalDebit || 0);
+      return { ...acc, amount };
+    });
   const totalCurrentLiabilities = currentLiabilities.reduce((sum, a) => sum + a.amount, 0);
 
-  // Kewajiban Jangka Panjang
-  const longTermLiabilities = accounts.filter(a => a.category === 'KEWAJIBAN' && a.subCategory === 'Kewajiban Jangka Panjang').map(acc => {
-    const r = trialMap[acc.code];
-    const amount = acc.normalBalance === 'K' ? (r.finalCredit - r.finalDebit) : (r.finalDebit - r.finalCredit);
-    return { ...acc, amount };
-  });
+  // Kewajiban Jangka Panjang: Accounts in KEWAJIBAN not in currentLiabilities
+  const longTermLiabilities = accounts
+    .filter(a => a.category === 'KEWAJIBAN' && !(a.subCategory === 'Kewajiban Lancar' || a.code.startsWith('2-1')))
+    .map(acc => {
+      const r = trialMap[acc.code] || { finalDebit: 0, finalCredit: 0 };
+      const amount = (r.finalCredit || 0) - (r.finalDebit || 0);
+      return { ...acc, amount };
+    });
   const totalLongTermLiabilities = longTermLiabilities.reduce((sum, a) => sum + a.amount, 0);
   const totalLiabilities = totalCurrentLiabilities + totalLongTermLiabilities;
 
-  // Ekuitas
-  const equityAccounts = accounts.filter(a => a.category === 'EKUITAS').map(acc => {
-    const r = trialMap[acc.code];
-    const amount = acc.normalBalance === 'K' ? (r.finalCredit - r.finalDebit) : -(r.finalDebit - r.finalCredit);
-    return { ...acc, amount };
-  });
+  // Ekuitas: Accounts in EKUITAS
+  const equityAccounts = accounts
+    .filter(a => a.category === 'EKUITAS')
+    .map(acc => {
+      const r = trialMap[acc.code] || { finalDebit: 0, finalCredit: 0 };
+      const amount = (r.finalCredit || 0) - (r.finalDebit || 0);
+      return { ...acc, amount };
+    });
   const totalEquityBase = equityAccounts.reduce((sum, a) => sum + a.amount, 0);
-  const netIncomeThisYear = income.netIncome; // Laba Tahun Berjalan
+  const netIncomeThisYear = income.netIncome; // Laba Tahun Berjalan dari Laba Rugi
   const totalEquity = totalEquityBase + netIncomeThisYear;
 
   const totalLiabilitiesAndEquity = totalLiabilities + totalEquity;
-  const isBalanced = Math.abs(totalAssets - totalLiabilitiesAndEquity) < 1;
   const difference = Math.abs(totalAssets - totalLiabilitiesAndEquity);
+  const isBalanced = difference < 1;
 
   return {
     currentAssets,
@@ -241,52 +251,71 @@ export const calculateBalanceSheet = (accounts, transactions) => {
   };
 };
 
-// General Ledger (Buku Besar) per Account
-export const calculateGeneralLedger = (accountCode, accounts, transactions) => {
+// General Ledger (Buku Besar) per Account with dynamic date filtering
+export const calculateGeneralLedger = (accountCode, accounts, transactions, dateStart = '', dateEnd = '') => {
   const account = accounts.find(a => a.code === accountCode);
-  if (!account) return { account: null, rows: [], endingBalance: 0 };
+  if (!account) return { account: null, rows: [], endingBalance: 0, openingBalance: 0 };
 
   const initialBal = account.initialBalance || 0;
-  let runningBal = initialBal;
+  let openingBal = initialBal;
+  const sortedTx = [...transactions].sort((a, b) => a.date.localeCompare(b.date));
 
-  const rows = [
-    {
-      date: '-',
-      voucherNo: 'SALDO-AWAL',
-      description: 'Saldo Awal Buku Besar',
-      debit: account.normalBalance === 'D' ? initialBal : 0,
-      credit: account.normalBalance === 'K' ? initialBal : 0,
-      balance: runningBal
-    }
-  ];
+  const periodTx = [];
 
-  transactions.forEach(tx => {
+  sortedTx.forEach(tx => {
+    const isPrior = dateStart && tx.date < dateStart;
+    const isAfter = dateEnd && tx.date > dateEnd;
+
     tx.lines.forEach(line => {
       if (line.accountCode === accountCode) {
         const d = Number(line.debit) || 0;
         const k = Number(line.credit) || 0;
+        const mutation = account.normalBalance === 'D' ? (d - k) : (k - d);
 
-        if (account.normalBalance === 'D') {
-          runningBal += (d - k);
-        } else {
-          runningBal += (k - d);
+        if (isPrior) {
+          openingBal += mutation;
+        } else if (!isAfter) {
+          periodTx.push({
+            date: tx.date,
+            voucherNo: tx.voucherNo,
+            description: tx.description + (line.memo ? ` (${line.memo})` : ''),
+            debit: d,
+            credit: k,
+            mutation
+          });
         }
-
-        rows.push({
-          date: tx.date,
-          voucherNo: tx.voucherNo,
-          description: tx.description + (line.memo ? ` (${line.memo})` : ''),
-          debit: d,
-          credit: k,
-          balance: runningBal
-        });
       }
+    });
+  });
+
+  let runningBal = openingBal;
+  const rows = [
+    {
+      date: dateStart || '-',
+      voucherNo: 'SALDO-AWAL',
+      description: dateStart ? `Saldo Awal per ${dateStart}` : 'Saldo Awal Buku Besar',
+      debit: account.normalBalance === 'D' && openingBal > 0 ? openingBal : 0,
+      credit: account.normalBalance === 'K' && openingBal > 0 ? openingBal : 0,
+      balance: runningBal
+    }
+  ];
+
+  periodTx.forEach(txItem => {
+    runningBal += txItem.mutation;
+    rows.push({
+      date: txItem.date,
+      voucherNo: txItem.voucherNo,
+      description: txItem.description,
+      debit: txItem.debit,
+      credit: txItem.credit,
+      balance: runningBal
     });
   });
 
   return {
     account,
     rows,
+    openingBalance: openingBal,
     endingBalance: runningBal
   };
 };

@@ -5,7 +5,9 @@ import { formatRupiah, formatNumber } from '../utils/accountingMath';
 export default function BaganAkunView({
   accounts,
   setAccounts,
-  transactions
+  transactions,
+  onSaveAccount,
+  onDeleteAccount
 }) {
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('ALL');
@@ -65,6 +67,7 @@ export default function BaganAkunView({
       const updated = accounts.filter(a => a.code !== acc.code);
       setAccounts(updated);
       localStorage.setItem('erp_accounts', JSON.stringify(updated));
+      if (onDeleteAccount) onDeleteAccount(acc.code);
     }
   };
 
@@ -94,24 +97,22 @@ export default function BaganAkunView({
       const updated = [...accounts, newAcc].sort((a, b) => a.code.localeCompare(b.code));
       setAccounts(updated);
       localStorage.setItem('erp_accounts', JSON.stringify(updated));
+      if (onSaveAccount) onSaveAccount(newAcc);
     } else {
       // Update existing
-      const updated = accounts.map(a => {
-        if (a.code === editingAccount.code) {
-          return {
-            ...a,
-            name: name.trim(),
-            category,
-            subCategory,
-            normalBalance,
-            initialBalance: parseFloat(initialBalance) || 0,
-            description: description.trim()
-          };
-        }
-        return a;
-      });
+      const editedAcc = {
+        code: editingAccount.code,
+        name: name.trim(),
+        category,
+        subCategory,
+        normalBalance,
+        initialBalance: parseFloat(initialBalance) || 0,
+        description: description.trim()
+      };
+      const updated = accounts.map(a => a.code === editingAccount.code ? editedAcc : a);
       setAccounts(updated);
       localStorage.setItem('erp_accounts', JSON.stringify(updated));
+      if (onSaveAccount) onSaveAccount(editedAcc);
     }
 
     setIsModalOpen(false);

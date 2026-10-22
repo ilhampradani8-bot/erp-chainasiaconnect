@@ -25,28 +25,79 @@ export default function DashboardView({
   const { totalRevenue, totalCogs, totalOpExpenses, netIncome } = incomeData;
   const { totalAssets, totalLiabilities, totalEquity, isBalanced } = balanceSheetData;
 
-  // Chart calculation: Revenue vs Cost breakdown
-  const barCategories = [
-    { label: 'Pendapatan Kargo', value: 110000000, color: '#00007c' },
-    { label: 'Pendapatan Gudang', value: 38000000, color: '#1084d0' },
-    { label: 'Handling Impor', value: 54000000, color: '#008080' },
-    { label: 'HPP Freight Kapal', value: 42000000, color: '#800000' },
-    { label: 'HPP BBM & Tol', value: 18500000, color: '#a0522d' },
-    { label: 'Beban Gaji Staf', value: 14000000, color: '#4b0082' },
-    { label: 'Beban Servis Armada', value: 7800000, color: '#4682b4' }
-  ];
+  // 1. Dynamic Bar Categories: Calculate real revenue and expense distribution
+  const allRevAccounts = [...(incomeData.revenueAccounts || []), ...(incomeData.otherRevenueAccounts || [])].filter(a => a.amount > 0);
+  const allExpAccounts = [...(incomeData.cogsAccounts || []), ...(incomeData.opExpenseAccounts || []), ...(incomeData.otherExpenseAccounts || [])].filter(a => a.amount > 0);
 
-  const maxBarValue = Math.max(...barCategories.map(b => b.value));
+  let barCategories = [];
+  if (allRevAccounts.length > 0 || allExpAccounts.length > 0) {
+    const topRev = allRevAccounts.sort((a, b) => b.amount - a.amount).slice(0, 4).map(a => ({
+      label: a.name.split('(')[0].trim(),
+      value: a.amount,
+      color: '#00007c'
+    }));
+    const topExp = allExpAccounts.sort((a, b) => b.amount - a.amount).slice(0, 4).map(a => ({
+      label: a.name.split('(')[0].trim(),
+      value: a.amount,
+      color: '#800000'
+    }));
+    barCategories = [...topRev, ...topExp];
+  } else {
+    // Dynamic category breakdown when no granular account data yet
+    barCategories = [
+      { label: 'Pendapatan Usaha', value: totalRevenue, color: '#00007c' },
+      { label: 'Beban Pokok Pendapatan (HPP)', value: totalCogs, color: '#800000' },
+      { label: 'Beban Operasional Usaha', value: totalOpExpenses, color: '#a0522d' },
+      { label: 'Laba Bersih Berjalan', value: Math.max(0, netIncome), color: '#006600' }
+    ];
+  }
 
-  // Monthly trend mock data for cashflow curve
-  const monthlyData = [
-    { month: 'Mei', rev: 140, exp: 95, profit: 45 },
-    { month: 'Jun', rev: 165, exp: 110, profit: 55 },
-    { month: 'Jul', rev: 180, exp: 125, profit: 55 },
-    { month: 'Ags', rev: 175, exp: 118, profit: 57 },
-    { month: 'Sep', rev: 195, exp: 130, profit: 65 },
-    { month: 'Okt', rev: Math.round(totalRevenue / 1000000), exp: Math.round((totalCogs + totalOpExpenses) / 1000000), profit: Math.round(netIncome / 1000000) }
-  ];
+  const maxBarValue = Math.max(1, ...barCategories.map(b => b.value));
+
+  // 2. Dynamic Monthly Trend Data:
+  // Build rolling 6 months based on current real date and actual journal transactions
+  const now = new Date();
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+  const monthlyData = [];
+
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const yr = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
+    const monthKey = `${yr}-${mo}`;
+    const label = monthNames[d.getMonth()];
+
+    // Sum transactions in this specific month
+    const monthTx = transactions.filter(t => t.date && t.date.startsWith(monthKey));
+    let rev = 0;
+    let exp = 0;
+
+    monthTx.forEach(t => {
+      t.lines.forEach(l => {
+        const acc = accounts.find(a => a.code === l.accountCode);
+        if (!acc) return;
+        const dNom = Number(l.debit) || 0;
+        const kNom = Number(l.credit) || 0;
+        if (acc.category === 'PENDAPATAN' || acc.category === 'PENDAPATAN_LAIN') {
+          rev += (kNom - dNom);
+        } else if (acc.category === 'HPP' || acc.category === 'BEBAN' || acc.category === 'BEBAN_LAIN') {
+          exp += (dNom - kNom);
+        }
+      });
+    });
+
+    monthlyData.push({
+      month: label,
+      rev: Math.round(rev / 1000000), // in millions
+      exp: Math.round(exp / 1000000),
+      profit: Math.round((rev - exp) / 1000000),
+      rawRev: rev,
+      rawExp: exp,
+      rawProfit: rev - exp
+    });
+  }
+
+  const maxMonthlyVal = Math.max(1, ...monthlyData.map(d => Math.max(d.rev, d.exp, Math.abs(d.profit))));
 
   return (
     <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -252,27 +303,29 @@ export default function DashboardView({
             <div style={{ flex: 1, position: 'relative', marginTop: '6px' }}>
               <svg viewBox="0 0 300 130" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
                 {/* Grid Lines */}
-                <line x1="20" y1="20" x2="290" y2="20" stroke="#f0f0f0" strokeDasharray="2,2" />
-                <line x1="20" y1="55" x2="290" y2="55" stroke="#f0f0f0" strokeDasharray="2,2" />
-                <line x1="20" y1="90" x2="290" y2="90" stroke="#f0f0f0" strokeDasharray="2,2" />
-                <line x1="20" y1="120" x2="290" y2="120" stroke="#808080" />
-                <line x1="20" y1="10" x2="20" y2="120" stroke="#808080" />
+                <line x1="25" y1="20" x2="290" y2="20" stroke="#f0f0f0" strokeDasharray="2,2" />
+                <line x1="25" y1="55" x2="290" y2="55" stroke="#f0f0f0" strokeDasharray="2,2" />
+                <line x1="25" y1="90" x2="290" y2="90" stroke="#f0f0f0" strokeDasharray="2,2" />
+                <line x1="25" y1="120" x2="290" y2="120" stroke="#808080" />
+                <line x1="25" y1="10" x2="25" y2="120" stroke="#808080" />
 
-                {/* Y-axis labels */}
-                <text x="5" y="24" fontSize="8" fill="#666">200</text>
-                <text x="5" y="59" fontSize="8" fill="#666">100</text>
-                <text x="5" y="94" fontSize="8" fill="#666">50</text>
-                <text x="10" y="123" fontSize="8" fill="#666">0</text>
+                {/* Y-axis labels dynamically calculated */}
+                <text x="3" y="24" fontSize="8" fill="#666">{maxMonthlyVal}</text>
+                <text x="3" y="59" fontSize="8" fill="#666">{Math.round((maxMonthlyVal * 2) / 3)}</text>
+                <text x="3" y="94" fontSize="8" fill="#666">{Math.round(maxMonthlyVal / 3)}</text>
+                <text x="12" y="123" fontSize="8" fill="#666">0</text>
 
                 {/* Points: Rev */}
                 <polyline
                   fill="none"
                   stroke="#00007c"
                   strokeWidth="2"
-                  points={monthlyData.map((d, i) => `${40 + i * 46},${120 - (d.rev / 200) * 100}`).join(' ')}
+                  points={monthlyData.map((d, i) => `${45 + i * 44},${120 - Math.min(100, Math.max(0, (d.rev / maxMonthlyVal) * 100))}`).join(' ')}
                 />
                 {monthlyData.map((d, i) => (
-                  <circle key={`r-${i}`} cx={40 + i * 46} cy={120 - (d.rev / 200) * 100} r="3" fill="#00007c" />
+                  <circle key={`r-${i}`} cx={45 + i * 44} cy={120 - Math.min(100, Math.max(0, (d.rev / maxMonthlyVal) * 100))} r="3" fill="#00007c">
+                    <title>{`${d.month}: Pendapatan ${formatRupiah(d.rawRev)}`}</title>
+                  </circle>
                 ))}
 
                 {/* Points: Exp */}
@@ -280,10 +333,12 @@ export default function DashboardView({
                   fill="none"
                   stroke="#800000"
                   strokeWidth="2"
-                  points={monthlyData.map((d, i) => `${40 + i * 46},${120 - (d.exp / 200) * 100}`).join(' ')}
+                  points={monthlyData.map((d, i) => `${45 + i * 44},${120 - Math.min(100, Math.max(0, (d.exp / maxMonthlyVal) * 100))}`).join(' ')}
                 />
                 {monthlyData.map((d, i) => (
-                  <circle key={`e-${i}`} cx={40 + i * 46} cy={120 - (d.exp / 200) * 100} r="3" fill="#800000" />
+                  <circle key={`e-${i}`} cx={45 + i * 44} cy={120 - Math.min(100, Math.max(0, (d.exp / maxMonthlyVal) * 100))} r="3" fill="#800000">
+                    <title>{`${d.month}: Beban ${formatRupiah(d.rawExp)}`}</title>
+                  </circle>
                 ))}
 
                 {/* Points: Profit */}
@@ -292,15 +347,17 @@ export default function DashboardView({
                   stroke="#006600"
                   strokeWidth="2"
                   strokeDasharray="3,2"
-                  points={monthlyData.map((d, i) => `${40 + i * 46},${120 - (d.profit / 200) * 100}`).join(' ')}
+                  points={monthlyData.map((d, i) => `${45 + i * 44},${120 - Math.min(100, Math.max(0, (d.profit / maxMonthlyVal) * 100))}`).join(' ')}
                 />
                 {monthlyData.map((d, i) => (
-                  <rect key={`p-${i}`} x={38 + i * 46} y={118 - (d.profit / 200) * 100} width="4" height="4" fill="#006600" />
+                  <rect key={`p-${i}`} x={43 + i * 44} y={118 - Math.min(100, Math.max(0, (d.profit / maxMonthlyVal) * 100))} width="4" height="4" fill="#006600">
+                    <title>{`${d.month}: Laba ${formatRupiah(d.rawProfit)}`}</title>
+                  </rect>
                 ))}
 
                 {/* X labels */}
                 {monthlyData.map((d, i) => (
-                  <text key={`l-${i}`} x={35 + i * 46} y="130" fontSize="9" fill="#333">{d.month}</text>
+                  <text key={`l-${i}`} x={38 + i * 44} y="130" fontSize="9" fill="#333">{d.month}</text>
                 ))}
               </svg>
             </div>
@@ -345,20 +402,28 @@ export default function DashboardView({
               </tr>
             </thead>
             <tbody>
-              {transactions.slice(0, 5).map((tx) => {
-                const totalD = tx.lines.reduce((s, l) => s + (Number(l.debit) || 0), 0);
-                const totalK = tx.lines.reduce((s, l) => s + (Number(l.credit) || 0), 0);
-                return (
-                  <tr key={tx.id}>
-                    <td>{tx.date}</td>
-                    <td style={{ fontFamily: 'Courier New, monospace', fontWeight: 'bold' }}>{tx.voucherNo}</td>
-                    <td>{tx.description}</td>
-                    <td style={{ color: '#555' }}>{tx.reference || '-'}</td>
-                    <td style={{ textAlign: 'right', fontFamily: 'Courier New, monospace' }}>{formatNumber(totalD)}</td>
-                    <td style={{ textAlign: 'right', fontFamily: 'Courier New, monospace' }}>{formatNumber(totalK)}</td>
-                  </tr>
-                );
-              })}
+              {transactions.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '16px', color: '#666', fontStyle: 'italic' }}>
+                    Belum ada transaksi jurnal pembukuan. Klik tombol "+ Entri Jurnal" di atas untuk menambah transaksi baru.
+                  </td>
+                </tr>
+              ) : (
+                transactions.slice(0, 5).map((tx) => {
+                  const totalD = tx.lines.reduce((s, l) => s + (Number(l.debit) || 0), 0);
+                  const totalK = tx.lines.reduce((s, l) => s + (Number(l.credit) || 0), 0);
+                  return (
+                    <tr key={tx.id}>
+                      <td>{tx.date}</td>
+                      <td style={{ fontFamily: 'Courier New, monospace', fontWeight: 'bold' }}>{tx.voucherNo}</td>
+                      <td>{tx.description}</td>
+                      <td style={{ color: '#555' }}>{tx.reference || '-'}</td>
+                      <td style={{ textAlign: 'right', fontFamily: 'Courier New, monospace' }}>{formatNumber(totalD)}</td>
+                      <td style={{ textAlign: 'right', fontFamily: 'Courier New, monospace' }}>{formatNumber(totalK)}</td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

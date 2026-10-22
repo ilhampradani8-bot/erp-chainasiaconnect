@@ -4,7 +4,8 @@ import { TrendingUp, Printer, FileText } from 'lucide-react';
 
 export default function LabaRugiView({
   incomeData,
-  onPrint
+  onPrint,
+  paperSettings
 }) {
   const {
     revenueAccounts,
@@ -21,6 +22,9 @@ export default function LabaRugiView({
     totalOtherExpenses,
     netIncome
   } = incomeData;
+
+  const company = paperSettings?.companyName || 'PT. CHAIN ASIA CONNECT';
+  const periodStr = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date());
 
   return (
     <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '8px', height: '100%' }}>
@@ -39,7 +43,7 @@ export default function LabaRugiView({
             LAPORAN LABA RUGI KOMPREHENSIF (INCOME STATEMENT)
           </div>
           <div style={{ fontSize: '11px', color: '#555' }}>
-            PT. CHAIN ASIA CONNECT - Periode Berjalan per Oktober 2026
+            {company} - Periode Berjalan per {periodStr}
           </div>
         </div>
 
@@ -54,9 +58,9 @@ export default function LabaRugiView({
         <div style={{ maxWidth: '850px', margin: '0 auto' }}>
           {/* Header Title inside document */}
           <div style={{ textAlign: 'center', marginBottom: '16px', borderBottom: '2px solid #000', paddingBottom: '8px' }}>
-            <h2 style={{ fontSize: '14px', margin: 0, textTransform: 'uppercase' }}>PT. CHAIN ASIA CONNECT</h2>
+            <h2 style={{ fontSize: '14px', margin: 0, textTransform: 'uppercase' }}>{company}</h2>
             <h3 style={{ fontSize: '13px', margin: '2px 0', color: 'var(--color-navy-blue)' }}>LAPORAN LABA RUGI (INCOME STATEMENT)</h3>
-            <p style={{ fontSize: '11px', margin: 0, color: '#555' }}>Untuk Periode yang Berakhir pada 31 Oktober 2026 (Dinyatakan dalam Rupiah)</p>
+            <p style={{ fontSize: '11px', margin: 0, color: '#555' }}>Untuk Periode yang Berakhir pada {new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date())} (Dinyatakan dalam Rupiah)</p>
           </div>
 
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px' }}>

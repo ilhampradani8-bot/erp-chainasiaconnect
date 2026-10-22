@@ -106,7 +106,7 @@ export default function PrintModal({
                   LAPORAN LABA RUGI KOMPREHENSIF
                 </div>
                 <div style={{ textAlign: 'center', fontSize: '10px', marginBottom: '12px', color: '#555' }}>
-                  Periode Berakhir 31 Oktober 2026
+                  Periode Berakhir {todayStr}
                 </div>
 
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
@@ -146,7 +146,7 @@ export default function PrintModal({
                   NERACA KEUANGAN (BALANCE SHEET)
                 </div>
                 <div style={{ textAlign: 'center', fontSize: '10px', marginBottom: '12px', color: '#555' }}>
-                  Per Tanggal 31 Oktober 2026
+                  Per Tanggal {todayStr}
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>

@@ -383,6 +383,7 @@ export default function WindowsDesktop() {
               <LabaRugiView
                 incomeData={incomeData}
                 onPrint={() => setIsPrintModalOpen(true)}
+                paperSettings={paperSettings}
               />
             )}
 
@@ -390,6 +391,7 @@ export default function WindowsDesktop() {
               <NeracaView
                 balanceSheetData={balanceSheetData}
                 onPrint={() => setIsPrintModalOpen(true)}
+                paperSettings={paperSettings}
               />
             )}
 
@@ -398,6 +400,8 @@ export default function WindowsDesktop() {
                 accounts={accounts}
                 setAccounts={setAccounts}
                 transactions={transactions}
+                onSaveAccount={handleSaveAccount}
+                onDeleteAccount={handleDeleteAccount}
               />
             )}
 

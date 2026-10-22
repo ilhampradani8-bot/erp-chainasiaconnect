@@ -4,7 +4,8 @@ import { Landmark, Printer, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export default function NeracaView({
   balanceSheetData,
-  onPrint
+  onPrint,
+  paperSettings
 }) {
   const {
     currentAssets,
@@ -26,6 +27,9 @@ export default function NeracaView({
     difference
   } = balanceSheetData;
 
+  const company = paperSettings?.companyName || 'PT. CHAIN ASIA CONNECT';
+  const periodStr = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+
   return (
     <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '8px', height: '100%' }}>
       {/* 1. Header Toolbar */}
@@ -43,7 +47,7 @@ export default function NeracaView({
             NERACA KEUANGAN (BALANCE SHEET / SHEET BALANCE)
           </div>
           <div style={{ fontSize: '11px', color: '#555' }}>
-            PT. CHAIN ASIA CONNECT - Posisi Keuangan per 31 Oktober 2026 (Standar SAK ETAP)
+            {company} - Posisi Keuangan per {periodStr} (Standar SAK ETAP)
           </div>
         </div>
 

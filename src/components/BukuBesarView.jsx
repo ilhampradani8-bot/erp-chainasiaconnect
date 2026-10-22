@@ -11,19 +11,11 @@ export default function BukuBesarView({
   const [dateStart, setDateStart] = useState('');
   const [dateEnd, setDateEnd] = useState('');
 
-  const ledger = calculateGeneralLedger(selectedAccountCode, accounts, transactions);
-  const { account, rows, endingBalance } = ledger;
+  const ledger = calculateGeneralLedger(selectedAccountCode, accounts, transactions, dateStart, dateEnd);
+  const { account, rows, endingBalance, openingBalance } = ledger;
 
-  // Filter rows by date
-  const filteredRows = rows.filter(r => {
-    if (r.voucherNo === 'SALDO-AWAL') return true;
-    const matchStart = !dateStart || r.date >= dateStart;
-    const matchEnd = !dateEnd || r.date <= dateEnd;
-    return matchStart && matchEnd;
-  });
-
-  const totalDebit = filteredRows.filter(r => r.voucherNo !== 'SALDO-AWAL').reduce((s, r) => s + r.debit, 0);
-  const totalCredit = filteredRows.filter(r => r.voucherNo !== 'SALDO-AWAL').reduce((s, r) => s + r.credit, 0);
+  const totalDebit = rows.filter(r => r.voucherNo !== 'SALDO-AWAL').reduce((s, r) => s + r.debit, 0);
+  const totalCredit = rows.filter(r => r.voucherNo !== 'SALDO-AWAL').reduce((s, r) => s + r.credit, 0);
 
   return (
     <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '8px', height: '100%' }}>
@@ -135,7 +127,7 @@ export default function BukuBesarView({
             </tr>
           </thead>
           <tbody>
-            {filteredRows.map((r, idx) => (
+            {rows.map((r, idx) => (
               <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#fff' : '#f9f9f9' }}>
                 <td>{r.date}</td>
                 <td style={{ fontFamily: 'Courier New, monospace', fontWeight: r.voucherNo === 'SALDO-AWAL' ? 'bold' : 'normal' }}>

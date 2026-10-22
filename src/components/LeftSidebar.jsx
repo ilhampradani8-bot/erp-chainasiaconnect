@@ -189,22 +189,36 @@ export default function LeftSidebar({
           flexDirection: 'column',
           gap: '3px'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#555' }}>Kas Kecil:</span>
-            <span style={{ fontWeight: '500' }}>{formatRupiah(getAccountBalance('1-1001'))}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#555' }}>Bank Mandiri:</span>
-            <span style={{ fontWeight: '500' }}>{formatRupiah(getAccountBalance('1-1002'))}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#555' }}>Bank BCA:</span>
-            <span style={{ fontWeight: '500' }}>{formatRupiah(getAccountBalance('1-1003'))}</span>
-          </div>
-          <div style={{ borderTop: '1px dashed #ccc', paddingTop: '2px', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#555' }}>Piutang Usaha:</span>
-            <span style={{ fontWeight: '500', color: '#0369a1' }}>{formatRupiah(getAccountBalance('1-1004'))}</span>
-          </div>
+          {accounts
+            .filter(a => a.category === 'ASET' && (a.subCategory === 'Aset Lancar' || a.code.startsWith('1-1')))
+            .slice(0, 4)
+            .map((acc, idx) => (
+              <div
+                key={acc.code}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  borderTop: idx === 3 ? '1px dashed #ccc' : 'none',
+                  paddingTop: idx === 3 ? '2px' : '0px'
+                }}
+              >
+                <span
+                  style={{
+                    color: '#555',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    maxWidth: '105px'
+                  }}
+                  title={acc.name}
+                >
+                  {acc.name.split('(')[0].trim()}:
+                </span>
+                <span style={{ fontWeight: '500', color: idx === 3 ? '#0369a1' : 'inherit' }}>
+                  {formatRupiah(getAccountBalance(acc.code))}
+                </span>
+              </div>
+            ))}
         </div>
       </div>
     </aside>
