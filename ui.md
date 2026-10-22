@@ -1,6 +1,6 @@
-# ERP-MIJ UI Architecture & Design System Guide (Windows 90s Abu)
+# ERP - Chain Asia Connect UI Architecture & Design System Guide (Windows 90s Abu)
 
-Dokumen ini merupakan panduan spesifikasi dan standarisasi antarmuka (Design System) untuk ERP-MIJ dengan konsep **Retro Windows 90s Abu (Classic OS Style)**. Seluruh komponen, modal, tabel, tombol, dan warna harus mengacu pada panduan ini untuk menjaga konsistensi tampilan.
+Dokumen ini merupakan panduan spesifikasi dan standarisasi antarmuka (Design System) untuk ERP - Chain Asia Connect dengan konsep **Retro Windows 90s Abu (Classic OS Style)**. Seluruh komponen, modal, tabel, tombol, dan warna harus mengacu pada panduan ini untuk menjaga konsistensi tampilan.
 
 ---
 
