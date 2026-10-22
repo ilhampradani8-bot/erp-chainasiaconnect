@@ -24,6 +24,7 @@ import {
   calculateBalanceSheet
 } from '../utils/accountingMath';
 import {
+  supabase,
   fetchAccountsFromDb,
   fetchTransactionsFromDb,
   fetchPaperSettingsFromDb,
@@ -55,11 +56,16 @@ export default function WindowsDesktop() {
     }
   });
 
-  // Accounts state with LocalStorage persistence
+  // Accounts state with clean zero-balance sanitation
   const [accounts, setAccounts] = useState(() => {
     try {
       const saved = localStorage.getItem('erp_accounts');
-      return saved ? JSON.parse(saved) : INITIAL_ACCOUNTS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Force initial balances to 0 for a clean chart of accounts
+        return parsed.map(a => ({ ...a, initialBalance: 0 }));
+      }
+      return INITIAL_ACCOUNTS;
     } catch {
       return INITIAL_ACCOUNTS;
     }
@@ -133,36 +139,76 @@ export default function WindowsDesktop() {
     savePaperSettingsToDb(paperSettings);
   }, [paperSettings]);
 
-  // Load from Supabase Cloud Database on Mount
+  // Load from Supabase Cloud Database on Mount & Establish Realtime Connection
   useEffect(() => {
+    let realtimeChannel = null;
+
     async function loadCloudData() {
       try {
+        setCloudStatus('Menghubungkan ke Cloud...');
         const dbAccounts = await fetchAccountsFromDb();
         if (dbAccounts && dbAccounts.length > 0) {
           setAccounts(dbAccounts);
+          localStorage.setItem('erp_accounts', JSON.stringify(dbAccounts));
         }
 
         const dbTx = await fetchTransactionsFromDb();
         if (dbTx !== null) {
           setTransactions(dbTx);
+          localStorage.setItem('erp_transactions', JSON.stringify(dbTx));
         }
 
         const dbPaper = await fetchPaperSettingsFromDb();
         if (dbPaper) {
           setPaperSettings(dbPaper);
+          localStorage.setItem('erp_paper_settings', JSON.stringify(dbPaper));
         }
 
         const dbCode = await fetchAccessCodeFromDb();
         if (dbCode) {
           setStoredAccessCode(dbCode);
+          localStorage.setItem('erp_access_code', dbCode);
         }
 
         setCloudStatus('Supabase Postgres (Connected)');
+
+        // Establish Supabase Realtime synchronization
+        realtimeChannel = supabase
+          .channel('erp_cloud_realtime')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_entries' }, async () => {
+            const freshTx = await fetchTransactionsFromDb();
+            if (freshTx !== null) setTransactions(freshTx);
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_lines' }, async () => {
+            const freshTx = await fetchTransactionsFromDb();
+            if (freshTx !== null) setTransactions(freshTx);
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'accounts' }, async () => {
+            const freshAcc = await fetchAccountsFromDb();
+            if (freshAcc && freshAcc.length > 0) setAccounts(freshAcc);
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'paper_settings' }, async () => {
+            const freshPaper = await fetchPaperSettingsFromDb();
+            if (freshPaper) setPaperSettings(freshPaper);
+          })
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              setCloudStatus('Supabase Postgres (Realtime)');
+            }
+          });
       } catch (err) {
+        console.warn('Gagal koneksi cloud:', err);
         setCloudStatus('LocalStorage (Offline)');
       }
     }
+
     loadCloudData();
+
+    return () => {
+      if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+      }
+    };
   }, []);
 
   // Authentication handlers

@@ -187,7 +187,19 @@ export async function fetchPaperSettingsFromDb() {
         companyNPWP: data.company_npwp,
         signatoryName: data.signatory_name,
         signatoryTitle: data.signatory_title,
-        documentFooterNote: data.document_footer_note
+        documentFooterNote: data.document_footer_note,
+        showLogo: data.show_logo ?? true,
+        logoUrl: data.logo_url || '',
+        logoWidth: data.logo_width || 70,
+        showSignature: data.show_signature ?? true,
+        signatoryCity: data.signatory_city || 'Jakarta',
+        signatoryDateMode: data.signatory_date_mode || 'auto',
+        signatoryCustomDate: data.signatory_custom_date || '',
+        signatureImageUrl: data.signature_image_url || '',
+        showStamp: data.show_stamp ?? true,
+        stampText: data.stamp_text || 'PT. CHAIN ASIA CONNECT\nFINANCE VERIFIED',
+        stampImageUrl: data.stamp_image_url || '',
+        stampColor: data.stamp_color || '#991b1b'
       };
     }
   } catch (err) {
@@ -214,6 +226,18 @@ export async function savePaperSettingsToDb(settings) {
       signatory_name: settings.signatoryName,
       signatory_title: settings.signatoryTitle,
       document_footer_note: settings.documentFooterNote,
+      show_logo: settings.showLogo,
+      logo_url: settings.logoUrl || '',
+      logo_width: settings.logoWidth || 70,
+      show_signature: settings.showSignature,
+      signatory_city: settings.signatoryCity || 'Jakarta',
+      signatory_date_mode: settings.signatoryDateMode || 'auto',
+      signatory_custom_date: settings.signatoryCustomDate || '',
+      signature_image_url: settings.signatureImageUrl || '',
+      show_stamp: settings.showStamp,
+      stamp_text: settings.stampText || '',
+      stamp_image_url: settings.stampImageUrl || '',
+      stamp_color: settings.stampColor || '#991b1b',
       updated_at: new Date().toISOString()
     });
   } catch (err) {
