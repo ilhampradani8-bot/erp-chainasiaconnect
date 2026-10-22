@@ -1,16 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import Calculator95 from './Calculator95';
-import { Printer, Scale, FileText, CheckCircle2, AlertTriangle, HelpCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Printer, Scale, FileText, CheckCircle2, AlertTriangle, Lock, ShieldCheck } from 'lucide-react';
 import { formatRupiah } from '../utils/accountingMath';
 
 export default function RightSidebar({
   paperSettings,
   setPaperSettings,
   onPrintPreview,
-  trialBalanceData,
   balanceSheetData,
-  showCalculator,
-  setShowCalculator
+  onLockSystem
 }) {
   const [scratchpad, setScratchpad] = useState(() => {
     return localStorage.getItem('erp_scratchpad') || 'Catatan Auditor:\n- Periksa bukti potong PPh 23\n- Rekonsiliasi Bank Mandiri akhir bulan\n- Siapkan invoice kargo kontainer';
@@ -35,8 +32,8 @@ export default function RightSidebar({
 
   return (
     <aside style={{
-      width: '270px',
-      minWidth: '270px',
+      width: '260px',
+      minWidth: '260px',
       backgroundColor: 'var(--color-silver)',
       borderLeft: '2px solid var(--color-platinum)',
       boxShadow: 'inset 1px 0 0 var(--color-gray)',
@@ -61,22 +58,16 @@ export default function RightSidebar({
       }}>
         <span>🛠️ Panel Inspeksi & Alat</span>
         <button
-          onClick={() => setShowCalculator(!showCalculator)}
-          className="win-ctrl-btn"
-          title="Tampilkan / Sembunyikan Kalkulator"
+          onClick={onLockSystem}
+          title="Kunci Akses Sistem ERP"
+          style={{ padding: '1px 5px', fontSize: '9.5px', display: 'flex', alignItems: 'center', gap: '3px' }}
         >
-          {showCalculator ? '−' : '+'}
+          <Lock size={10} />
+          <span>Lock</span>
         </button>
       </div>
 
-      {/* 2. Interactive Calculator 95 */}
-      {showCalculator && (
-        <div>
-          <Calculator95 />
-        </div>
-      )}
-
-      {/* 3. Quick Balance & Audit Card */}
+      {/* 2. Quick Balance & Audit Card */}
       <div style={{
         backgroundColor: 'var(--color-silver)',
         border: '2px solid',
@@ -135,7 +126,7 @@ export default function RightSidebar({
         </div>
       </div>
 
-      {/* 4. Quick Paper Settings Switcher */}
+      {/* 3. Quick Paper Settings Switcher */}
       <div style={{
         backgroundColor: 'var(--color-silver)',
         border: '2px solid',
@@ -207,7 +198,7 @@ export default function RightSidebar({
         </button>
       </div>
 
-      {/* 5. Accountant Scratchpad (Coretan Akuntan) */}
+      {/* 4. Accountant Scratchpad (Coretan Akuntan) */}
       <div style={{
         flex: 1,
         backgroundColor: 'var(--color-silver)',
@@ -216,7 +207,7 @@ export default function RightSidebar({
         padding: '6px',
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '120px'
+        minHeight: '160px'
       }}>
         <div style={{
           fontSize: '11px',
@@ -243,6 +234,29 @@ export default function RightSidebar({
             lineHeight: 1.3
           }}
         />
+      </div>
+
+      {/* 5. Session Security Status */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        border: '1px inset #808080',
+        padding: '4px 6px',
+        fontSize: '10px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        color: '#555'
+      }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <ShieldCheck size={12} color="#166534" />
+          <span>Sesi: Terotentikasi</span>
+        </span>
+        <button
+          onClick={onLockSystem}
+          style={{ fontSize: '9px', padding: '1px 5px' }}
+        >
+          Kunci
+        </button>
       </div>
     </aside>
   );

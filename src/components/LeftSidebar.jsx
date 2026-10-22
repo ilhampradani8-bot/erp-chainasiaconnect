@@ -12,7 +12,8 @@ import {
   PlusCircle,
   Wallet,
   Building,
-  CreditCard
+  CreditCard,
+  KeyRound
 } from 'lucide-react';
 import { formatRupiah } from '../utils/accountingMath';
 
@@ -51,6 +52,7 @@ export default function LeftSidebar({
     { id: 'neraca', label: 'Neraca (Sheet Balance)', icon: Landmark },
     { id: 'baganakun', label: 'Pengaturan Bagan Akun', icon: Settings },
     { id: 'pengaturankertas', label: 'Pengaturan Kertas & Kop', icon: Sliders },
+    { id: 'pengaturankode', label: 'Pengaturan Kode Akses', icon: KeyRound },
     { id: 'cadangan', label: 'Database & Cadangan', icon: Database }
   ];
 

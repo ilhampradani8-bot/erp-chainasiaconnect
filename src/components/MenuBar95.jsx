@@ -2,19 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   FileText,
   Printer,
-  Save,
-  FolderOpen,
   RefreshCw,
-  LayoutDashboard,
-  Scale,
-  TrendingUp,
-  Landmark,
-  Settings,
-  Sliders,
-  HelpCircle,
   PlusCircle,
-  Database,
-  Calculator as CalcIcon
+  Lock,
+  Download,
+  Upload,
+  RotateCcw
 } from 'lucide-react';
 
 export default function MenuBar95({
@@ -25,7 +18,7 @@ export default function MenuBar95({
   onExportJson,
   onImportJson,
   onResetData,
-  onToggleCalculator,
+  onLockSystem,
   onRefresh
 }) {
   const [openMenu, setOpenMenu] = useState(null);
@@ -68,6 +61,7 @@ export default function MenuBar95({
           <span>ERP-CHAINASIACONNECT v2.4 (Enterprise Accounting Edition) - [PT. CHAIN ASIA CONNECT]</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+          <button className="win-ctrl-btn" title="Kunci Sistem" onClick={onLockSystem} style={{ color: '#000' }}>🔒</button>
           <button className="win-ctrl-btn" title="Minimize" onClick={() => alert('Jendela diminimalkan ke Taskbar')}>_</button>
           <button className="win-ctrl-btn" title="Maximize" onClick={() => alert('Mode Layar Penuh Maksimal Aktif')}>□</button>
           <button className="win-ctrl-btn" title="Tutup / Refresh" onClick={onRefresh} style={{ fontWeight: 'bold', color: '#800000' }}>✕</button>
@@ -98,18 +92,7 @@ export default function MenuBar95({
             <u>F</u>ile
           </button>
           {openMenu === 'file' && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              backgroundColor: 'var(--color-silver)',
-              border: '2px solid',
-              borderColor: 'var(--color-platinum) var(--color-black) var(--color-black) var(--color-platinum)',
-              boxShadow: '2px 2px 0px #000',
-              minWidth: '220px',
-              padding: '2px',
-              zIndex: 100
-            }}>
+            <div style={dropdownCardStyle}>
               <div onClick={() => handleAction(onOpenNewJournalModal)} style={menuItemStyle}>
                 <span>Entri Transaksi Baru...</span> <span style={shortcutStyle}>Ctrl+N</span>
               </div>
@@ -124,93 +107,11 @@ export default function MenuBar95({
                 <span>Pulihkan Database dari JSON...</span>
               </div>
               <div style={menuDividerStyle}></div>
+              <div onClick={() => handleAction(onLockSystem)} style={menuItemStyle}>
+                <span>Kunci Layar (Lock Session)...</span>
+              </div>
               <div onClick={() => handleAction(onResetData)} style={{ ...menuItemStyle, color: '#990000' }}>
                 <span>Reset Database ke Default SAK...</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Menu Transaksi */}
-        <div style={{ position: 'relative' }}>
-          <button
-            onClick={() => handleMenuClick('transaksi')}
-            style={{
-              padding: '2px 8px',
-              border: openMenu === 'transaksi' ? '1px solid var(--color-black)' : '1px solid transparent',
-              background: openMenu === 'transaksi' ? '#e0e0e0' : 'transparent',
-              boxShadow: 'none'
-            }}
-          >
-            <u>T</u>ransaksi
-          </button>
-          {openMenu === 'transaksi' && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              backgroundColor: 'var(--color-silver)',
-              border: '2px solid',
-              borderColor: 'var(--color-platinum) var(--color-black) var(--color-black) var(--color-platinum)',
-              boxShadow: '2px 2px 0px #000',
-              minWidth: '220px',
-              padding: '2px',
-              zIndex: 100
-            }}>
-              <div onClick={() => handleAction(() => setActiveView('jurnal'))} style={menuItemStyle}>
-                <span>Jurnal Umum (General Journal)</span>
-              </div>
-              <div onClick={() => handleAction(() => setActiveView('bukubesar'))} style={menuItemStyle}>
-                <span>Buku Besar (General Ledger)</span>
-              </div>
-              <div style={menuDividerStyle}></div>
-              <div onClick={() => handleAction(onOpenNewJournalModal)} style={menuItemStyle}>
-                <span>+ Entri Jurnal Transaksi Baru</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Menu Laporan */}
-        <div style={{ position: 'relative' }}>
-          <button
-            onClick={() => handleMenuClick('laporan')}
-            style={{
-              padding: '2px 8px',
-              border: openMenu === 'laporan' ? '1px solid var(--color-black)' : '1px solid transparent',
-              background: openMenu === 'laporan' ? '#e0e0e0' : 'transparent',
-              boxShadow: 'none'
-            }}
-          >
-            <u>L</u>aporan
-          </button>
-          {openMenu === 'laporan' && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              backgroundColor: 'var(--color-silver)',
-              border: '2px solid',
-              borderColor: 'var(--color-platinum) var(--color-black) var(--color-black) var(--color-platinum)',
-              boxShadow: '2px 2px 0px #000',
-              minWidth: '240px',
-              padding: '2px',
-              zIndex: 100
-            }}>
-              <div onClick={() => handleAction(() => setActiveView('dashboard'))} style={menuItemStyle}>
-                <span>Dashboard Grafik Finansial</span>
-              </div>
-              <div onClick={() => handleAction(() => setActiveView('neracasaldo'))} style={menuItemStyle}>
-                <span>Neraca Saldo (Trial Balance)</span>
-              </div>
-              <div onClick={() => handleAction(() => setActiveView('labarugi'))} style={menuItemStyle}>
-                <span>Laporan Laba Rugi (P&L)</span>
-              </div>
-              <div onClick={() => handleAction(() => setActiveView('neraca'))} style={menuItemStyle}>
-                <span>Neraca Keuangan (Balance Sheet)</span>
-              </div>
-              <div onClick={() => handleAction(() => setActiveView('bukubesar'))} style={menuItemStyle}>
-                <span>Buku Besar Per Akun</span>
               </div>
             </div>
           )}
@@ -230,23 +131,15 @@ export default function MenuBar95({
             <u>P</u>engaturan
           </button>
           {openMenu === 'pengaturan' && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              backgroundColor: 'var(--color-silver)',
-              border: '2px solid',
-              borderColor: 'var(--color-platinum) var(--color-black) var(--color-black) var(--color-platinum)',
-              boxShadow: '2px 2px 0px #000',
-              minWidth: '240px',
-              padding: '2px',
-              zIndex: 100
-            }}>
+            <div style={dropdownCardStyle}>
               <div onClick={() => handleAction(() => setActiveView('baganakun'))} style={menuItemStyle}>
                 <span>Pengaturan Bagan Akun (COA)...</span>
               </div>
               <div onClick={() => handleAction(() => setActiveView('pengaturankertas'))} style={menuItemStyle}>
                 <span>Pengaturan Kertas & Kop Surat...</span>
+              </div>
+              <div onClick={() => handleAction(() => setActiveView('pengaturankode'))} style={menuItemStyle}>
+                <span>Pengaturan Kode Akses (PIN)...</span>
               </div>
               <div style={menuDividerStyle}></div>
               <div onClick={() => handleAction(() => setActiveView('cadangan'))} style={menuItemStyle}>
@@ -270,109 +163,68 @@ export default function MenuBar95({
             <u>B</u>antuan
           </button>
           {openMenu === 'bantuan' && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              backgroundColor: 'var(--color-silver)',
-              border: '2px solid',
-              borderColor: 'var(--color-platinum) var(--color-black) var(--color-black) var(--color-platinum)',
-              boxShadow: '2px 2px 0px #000',
-              minWidth: '260px',
-              padding: '2px',
-              zIndex: 100
-            }}>
-              <div onClick={() => handleAction(() => alert('ERP-CHAINASIACONNECT v2.4 (SAK ETAP Compliance)\nDesain Retro Windows 90s sesuai spesifikasi ui.md.\nDirancang khusus untuk pembukuan akuntansi, neraca saldo, laba rugi, buku besar, dan cetak faktur/laporan.'))} style={menuItemStyle}>
+            <div style={dropdownCardStyle}>
+              <div onClick={() => handleAction(() => alert('ERP-CHAINASIACONNECT v2.4 (SAK ETAP Compliance)\nDesain Retro Windows 90s sesuai spesifikasi ui.md.\nDirancang khusus untuk pembukuan akuntansi, neraca saldo, laba rugi, dan cetak laporan.'))} style={menuItemStyle}>
                 <span>Tentang ERP-ChainAsiaConnect...</span>
               </div>
-              <div onClick={() => handleAction(() => alert('Panduan Pintas:\n- Gunakan sidebar kiri untuk navigasi modul.\n- Gunakan kalkulator di sidebar kanan untuk hitungan cepat.\n- Pengaturan kertas mendukung A4, Letter, hingga Kertas Kasir Struk 80mm.'))} style={menuItemStyle}>
-                <span>Petunjuk Operasional Akuntansi</span>
+              <div onClick={() => handleAction(() => alert('Navigasi modul akuntansi dipusatkan di Sidebar Kiri agar rapi dan mudah diakses.'))} style={menuItemStyle}>
+                <span>Petunjuk Penggunaan Sistem</span>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* 3. Action Toolbar with 90s Bevel Buttons */}
+      {/* 3. Action Toolbar - Cleaned (No redundant navigation, centralized to sidebar) */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '4px',
-        padding: '3px 6px',
+        gap: '6px',
+        padding: '3px 8px',
         backgroundColor: 'var(--color-silver)',
         borderBottom: '1px solid var(--color-platinum)',
-        boxShadow: 'inset 0 1px 0 #fff, 0 1px 0 #808080',
-        overflowX: 'auto'
+        boxShadow: 'inset 0 1px 0 #fff, 0 1px 0 #808080'
       }}>
         <button onClick={onOpenNewJournalModal} className="btn-primary" title="Tambah Entri Jurnal Baru">
           <PlusCircle size={13} color="#00007c" />
-          <span>Jurnal Baru</span>
+          <span>+ Jurnal Transaksi Baru</span>
         </button>
 
-        <div style={{ width: '1px', height: '18px', backgroundColor: 'var(--color-gray)', margin: '0 2px' }} />
-
-        <button onClick={() => setActiveView('dashboard')} className={activeView === 'dashboard' ? 'active' : ''}>
-          <LayoutDashboard size={13} />
-          <span>Dashboard</span>
-        </button>
-
-        <button onClick={() => setActiveView('jurnal')} className={activeView === 'jurnal' ? 'active' : ''}>
-          <FileText size={13} />
-          <span>Jurnal Umum</span>
-        </button>
-
-        <button onClick={() => setActiveView('bukubesar')} className={activeView === 'bukubesar' ? 'active' : ''}>
-          <FolderOpen size={13} />
-          <span>Buku Besar</span>
-        </button>
-
-        <button onClick={() => setActiveView('neracasaldo')} className={activeView === 'neracasaldo' ? 'active' : ''}>
-          <Scale size={13} />
-          <span>Neraca Saldo</span>
-        </button>
-
-        <button onClick={() => setActiveView('labarugi')} className={activeView === 'labarugi' ? 'active' : ''}>
-          <TrendingUp size={13} />
-          <span>Laba Rugi</span>
-        </button>
-
-        <button onClick={() => setActiveView('neraca')} className={activeView === 'neraca' ? 'active' : ''}>
-          <Landmark size={13} />
-          <span>Neraca (Balance)</span>
-        </button>
-
-        <div style={{ width: '1px', height: '18px', backgroundColor: 'var(--color-gray)', margin: '0 2px' }} />
-
-        <button onClick={() => setActiveView('baganakun')} className={activeView === 'baganakun' ? 'active' : ''}>
-          <Settings size={13} />
-          <span>Bagan Akun (COA)</span>
-        </button>
-
-        <button onClick={() => setActiveView('pengaturankertas')} className={activeView === 'pengaturankertas' ? 'active' : ''}>
-          <Sliders size={13} />
-          <span>Kertas & Kop</span>
-        </button>
-
-        <button onClick={onPrint} title="Cetak Laporan / Faktur Sesuai Setting Kertas">
+        <button onClick={onPrint} title="Cetak Dokumen Sesuai Format Kertas">
           <Printer size={13} />
-          <span>Cetak</span>
+          <span>Cetak Laporan</span>
         </button>
 
-        <div style={{ width: '1px', height: '18px', backgroundColor: 'var(--color-gray)', margin: '0 2px' }} />
+        <div style={{ width: '1px', height: '18px', backgroundColor: 'var(--color-gray)', margin: '0 4px' }} />
 
-        <button onClick={onRefresh} title="Segarkan Data">
+        <button onClick={onRefresh} title="Segarkan Data Halaman">
           <RefreshCw size={13} />
           <span>Refresh</span>
         </button>
 
-        <button onClick={onToggleCalculator} title="Buka / Tutup Kalkulator">
-          <CalcIcon size={13} />
-          <span>Kalkulator</span>
+        <div style={{ flex: 1 }}></div>
+
+        <button onClick={onLockSystem} title="Kunci Sesi Akses Sekarang" style={{ color: '#00007c' }}>
+          <Lock size={12} />
+          <span>Kunci Layar (Lock)</span>
         </button>
       </div>
     </div>
   );
 }
+
+const dropdownCardStyle = {
+  position: 'absolute',
+  top: '100%',
+  left: 0,
+  backgroundColor: 'var(--color-silver)',
+  border: '2px solid',
+  borderColor: 'var(--color-platinum) var(--color-black) var(--color-black) var(--color-platinum)',
+  boxShadow: '2px 2px 0px #000',
+  minWidth: '230px',
+  padding: '2px',
+  zIndex: 100
+};
 
 const menuItemStyle = {
   padding: '4px 10px',

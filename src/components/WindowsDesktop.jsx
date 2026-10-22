@@ -11,9 +11,11 @@ import LabaRugiView from './LabaRugiView';
 import NeracaView from './NeracaView';
 import BaganAkunView from './BaganAkunView';
 import PengaturanKertasView from './PengaturanKertasView';
+import PengaturanKodeAksesView from './PengaturanKodeAksesView';
 import CadanganView from './CadanganView';
 import NewJournalModal from './NewJournalModal';
 import PrintModal from './PrintModal';
+import AccessCodeModal from './AccessCodeModal';
 
 import { INITIAL_ACCOUNTS, INITIAL_TRANSACTIONS, DEFAULT_PAPER_SETTINGS } from '../data/accountingStore';
 import {
@@ -23,6 +25,23 @@ import {
 } from '../utils/accountingMath';
 
 export default function WindowsDesktop() {
+  // Access Code & Session Authentication state
+  const [storedAccessCode, setStoredAccessCode] = useState(() => {
+    try {
+      return localStorage.getItem('erp_access_code') || '123456';
+    } catch {
+      return '123456';
+    }
+  });
+
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    try {
+      return sessionStorage.getItem('erp_authenticated') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
   // Accounts state with LocalStorage persistence
   const [accounts, setAccounts] = useState(() => {
     try {
@@ -53,13 +72,12 @@ export default function WindowsDesktop() {
     }
   });
 
-  // Active view: 'dashboard' | 'jurnal' | 'bukubesar' | 'neracasaldo' | 'labarugi' | 'neraca' | 'baganakun' | 'pengaturankertas' | 'cadangan'
+  // Active view: 'dashboard' | 'jurnal' | 'bukubesar' | 'neracasaldo' | 'labarugi' | 'neraca' | 'baganakun' | 'pengaturankertas' | 'pengaturankode' | 'cadangan'
   const [activeView, setActiveView] = useState('dashboard');
 
   // Modals state
   const [isNewJournalOpen, setIsNewJournalOpen] = useState(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
-  const [showCalculator, setShowCalculator] = useState(true);
 
   // Sync to localStorage
   useEffect(() => {
@@ -73,6 +91,21 @@ export default function WindowsDesktop() {
   useEffect(() => {
     localStorage.setItem('erp_paper_settings', JSON.stringify(paperSettings));
   }, [paperSettings]);
+
+  // Authentication handlers
+  const handleAuthenticateSuccess = () => {
+    try {
+      sessionStorage.setItem('erp_authenticated', 'true');
+    } catch {}
+    setIsAuthenticated(true);
+  };
+
+  const handleLockSystem = () => {
+    try {
+      sessionStorage.removeItem('erp_authenticated');
+    } catch {}
+    setIsAuthenticated(false);
+  };
 
   // Financial Calculations
   const trialBalanceData = calculateTrialBalance(accounts, transactions);
@@ -167,7 +200,7 @@ export default function WindowsDesktop() {
           onExportJson={handleExportJson}
           onImportJson={handleImportJson}
           onResetData={handleResetData}
-          onToggleCalculator={() => setShowCalculator(!showCalculator)}
+          onLockSystem={handleLockSystem}
           onRefresh={() => window.location.reload()}
         />
 
@@ -178,7 +211,7 @@ export default function WindowsDesktop() {
           overflow: 'hidden',
           backgroundColor: '#c0c0c0'
         }}>
-          {/* Left Sidebar: Accounting Module Tree & Live Liquidity */}
+          {/* Left Sidebar: Accounting Module Tree & Live Liquidity (Central Navigation) */}
           <LeftSidebar
             activeView={activeView}
             setActiveView={setActiveView}
@@ -260,6 +293,14 @@ export default function WindowsDesktop() {
               />
             )}
 
+            {activeView === 'pengaturankode' && (
+              <PengaturanKodeAksesView
+                storedAccessCode={storedAccessCode}
+                setStoredAccessCode={setStoredAccessCode}
+                onLockSystem={handleLockSystem}
+              />
+            )}
+
             {activeView === 'cadangan' && (
               <CadanganView
                 accounts={accounts}
@@ -273,15 +314,13 @@ export default function WindowsDesktop() {
             )}
           </main>
 
-          {/* Right Sidebar: Calculator, Audit Inspector, Quick Paper Switcher & Scratchpad */}
+          {/* Right Sidebar: Cleaned Inspector, Quick Paper Switcher & Scratchpad */}
           <RightSidebar
             paperSettings={paperSettings}
             setPaperSettings={setPaperSettings}
             onPrintPreview={() => setIsPrintModalOpen(true)}
-            trialBalanceData={trialBalanceData}
             balanceSheetData={balanceSheetData}
-            showCalculator={showCalculator}
-            setShowCalculator={setShowCalculator}
+            onLockSystem={handleLockSystem}
           />
         </div>
       </div>
@@ -313,6 +352,13 @@ export default function WindowsDesktop() {
         trialBalanceData={trialBalanceData}
         transactions={transactions}
         accounts={accounts}
+      />
+
+      {/* 4. Access Code Gate (Closes popup on valid PIN) */}
+      <AccessCodeModal
+        isOpen={!isAuthenticated}
+        onAuthenticate={handleAuthenticateSuccess}
+        storedAccessCode={storedAccessCode}
       />
     </div>
   );

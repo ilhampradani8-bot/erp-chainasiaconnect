@@ -29,6 +29,7 @@ export default function Taskbar95({
     neraca: '🏛️ Neraca Keuangan (Balance Sheet)',
     baganakun: '🗂️ Pengaturan Bagan Akun (COA)',
     pengaturankertas: '🖨️ Pengaturan Kertas & Kop',
+    pengaturankode: '🔐 Pengaturan Kode Akses',
     cadangan: '💾 Cadangan & Pemulihan Data'
   };
 
@@ -147,6 +148,12 @@ export default function Taskbar95({
                 style={startItemStyle}
               >
                 <span>🖨️ Pengaturan Kertas & Kop</span>
+              </div>
+              <div
+                onClick={() => { setActiveView('pengaturankode'); setStartOpen(false); }}
+                style={startItemStyle}
+              >
+                <span>🔐 Pengaturan Kode Akses</span>
               </div>
               <div
                 onClick={() => { onOpenNewJournalModal(); setStartOpen(false); }}
