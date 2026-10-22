@@ -380,28 +380,68 @@ fieldset.win-fieldset legend {
   font-size: 11px;
 }
 
-/* Print Styles */
+/* Print Styles: ONLY the document inside #printable-area will be printed */
 @media print {
-  body {
+  /* Hide all background desktop and browser elements */
+  body, html {
+    background: #ffffff !important;
     background-color: #ffffff !important;
     color: #000000 !important;
-    overflow: visible !important;
-    height: auto !important;
-    width: auto !important;
-  }
-  .no-print, .win-desktop-chrome, .win-sidebar-left, .win-sidebar-right, .win-taskbar, .win-toolbar, .win-menubar {
-    display: none !important;
-  }
-  .print-only {
-    display: block !important;
-  }
-  .print-page-container {
-    width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide entire UI except printable area */
+  body * {
+    visibility: hidden !important;
+  }
+
+  #printable-area, #printable-area * {
+    visibility: visible !important;
+  }
+
+  #printable-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 10mm 15mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    z-index: 99999 !important;
+  }
+
+  /* Hide modal dialog containers, dark backdrop, and taskbars */
+  .modal-overlay,
+  .modal-card,
+  .modal-header,
+  .modal-body,
+  .win-toolbar,
+  .win-menubar,
+  .win-taskbar,
+  .win-sidebar-left,
+  .win-sidebar-right,
+  .desktop-workspace {
+    position: static !important;
+    background: transparent !important;
+    background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
-    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: auto !important;
+    height: auto !important;
+  }
+
+  @page {
+    size: auto;
+    margin: 0mm;
   }
 }
 

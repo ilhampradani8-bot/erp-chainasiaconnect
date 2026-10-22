@@ -65,8 +65,24 @@ export const DEFAULT_PAPER_SETTINGS = {
   companyAddress: 'Gedung Menara Asia Pasifik Lt. 12, Jl. Jend. Sudirman Kav. 45, Jakarta Pusat 10210',
   companyContact: 'Telp: (021) 5890-2345 | Fax: (021) 5890-2346 | Email: finance@chainasiaconnect.com',
   companyNPWP: 'NPWP: 01.345.678.9-021.000',
+  // Logo Settings
+  showLogo: true,
+  logoUrl: '',
+  logoWidth: 70,
+  // Signatory & TTD Settings
+  showSignature: true,
+  signatoryCity: 'Jakarta',
+  signatoryDateMode: 'auto', // 'auto' (tanggal hari ini) or 'manual'
+  signatoryCustomDate: '',
   signatoryName: 'Drs. H. Bambang Prakoso, Ak., M.M.',
   signatoryTitle: 'Financial Controller & Kepala Akuntansi',
+  signatureImageUrl: '', // Optional scan ttd
+  // Stamp / Cap Perusahaan Settings
+  showStamp: true,
+  stampText: 'PT. CHAIN ASIA CONNECT\nFINANCE VERIFIED',
+  stampImageUrl: '', // Optional scan stempel
+  stampColor: '#991b1b', // Red retro corporate seal
+  // Footer
   documentFooterNote: 'Dokumen dicetak secara terkomputerisasi oleh ERP-ChainAsiaConnect v2.4 (Windows 90s Edition). Sah tanpa tanda tangan fisik bila divalidasi kode sistem.',
   showGridLines: true,
   showHeaderBorder: true

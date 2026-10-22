@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import MenuBar95 from './MenuBar95';
 import LeftSidebar from './LeftSidebar';
 import RightSidebar from './RightSidebar';
@@ -97,6 +97,18 @@ export default function WindowsDesktop() {
   const [mobileLeftOpen, setMobileLeftOpen] = useState(false);
   const [mobileRightOpen, setMobileRightOpen] = useState(false);
 
+  // CRUD Save Indicator Toast State
+  const [saveToast, setSaveToast] = useState(null);
+  const saveToastTimeoutRef = useRef(null);
+
+  const triggerSaveIndicator = (msg = 'Perubahan data berhasil disimpan ke Cloud Database!') => {
+    if (saveToastTimeoutRef.current) clearTimeout(saveToastTimeoutRef.current);
+    setSaveToast(msg);
+    saveToastTimeoutRef.current = setTimeout(() => {
+      setSaveToast(null);
+    }, 3200);
+  };
+
   const handleOpenNewJournal = () => {
     setEditingTransaction(null);
     setIsNewJournalOpen(true);
@@ -173,6 +185,7 @@ export default function WindowsDesktop() {
     setStoredAccessCode(newCode);
     localStorage.setItem('erp_access_code', newCode);
     saveAccessCodeToDb(newCode);
+    triggerSaveIndicator('Kode Akses Keamanan berhasil diperbarui!');
   };
 
   // Financial Calculations
@@ -190,6 +203,7 @@ export default function WindowsDesktop() {
     }
     setTransactions(updated);
     await saveTransactionToDb(txPayload);
+    triggerSaveIndicator(isEdit ? `Jurnal ${txPayload.voucherNo} berhasil diperbarui!` : `Jurnal baru ${txPayload.voucherNo} berhasil disimpan!`);
   };
 
   // Handle transaction deleted
@@ -197,26 +211,35 @@ export default function WindowsDesktop() {
     const updated = transactions.filter(t => t.id !== id);
     setTransactions(updated);
     await deleteTransactionFromDb(voucherNo);
+    triggerSaveIndicator(`Jurnal ${voucherNo || ''} berhasil dihapus!`);
   };
 
   // Handle account added or edited
   const handleSaveAccount = async (acc) => {
     await saveAccountToDb(acc);
+    triggerSaveIndicator(`Akun ${acc.code} (${acc.name}) berhasil disimpan!`);
   };
 
   // Handle account deleted
   const handleDeleteAccount = async (code) => {
     await deleteAccountFromDb(code);
+    triggerSaveIndicator(`Akun ${code} berhasil dihapus dari Bagan Akun!`);
+  };
+
+  // Handle Paper Settings Saved
+  const handleSavePaperSettings = (newSettings) => {
+    setPaperSettings(newSettings);
+    triggerSaveIndicator('Pengaturan Kertas, Kop, Logo, TTD & Cap berhasil disimpan!');
   };
 
   // Reset Data to standard initial
   const handleResetData = () => {
-    if (confirm('Apakah Anda yakin ingin mengatur ulang semua data pembukuan ke default awal PT Chain Asia Connect?')) {
+    if (confirm('Apakah Anda yakin ingin mengatur ulang semua data pembukuan ke default awal?')) {
       setAccounts(INITIAL_ACCOUNTS);
       setTransactions(INITIAL_TRANSACTIONS);
       setPaperSettings(DEFAULT_PAPER_SETTINGS);
       localStorage.removeItem('erp_scratchpad');
-      alert('Data sistem berhasil direset ke standar!');
+      triggerSaveIndicator('Database berhasil diatur ulang ke kondisi awal!');
     }
   };
 
@@ -350,6 +373,7 @@ export default function WindowsDesktop() {
                 transactions={transactions}
                 accounts={accounts}
                 onNavigate={setActiveView}
+                paperSettings={paperSettings}
               />
             )}
 
@@ -408,7 +432,7 @@ export default function WindowsDesktop() {
             {activeView === 'pengaturankertas' && (
               <PengaturanKertasView
                 paperSettings={paperSettings}
-                setPaperSettings={setPaperSettings}
+                setPaperSettings={handleSavePaperSettings}
                 onPrintPreview={() => setIsPrintModalOpen(true)}
               />
             )}
@@ -487,6 +511,38 @@ export default function WindowsDesktop() {
         onAuthenticate={handleAuthenticateSuccess}
         storedAccessCode={storedAccessCode}
       />
+
+      {/* 5. Retro Floating Save Indicator Toast */}
+      {saveToast && (
+        <div style={{
+          position: 'fixed',
+          bottom: '36px',
+          right: '12px',
+          zIndex: 99999,
+          backgroundColor: '#c0c0c0',
+          borderTop: '2px solid #ffffff',
+          borderLeft: '2px solid #ffffff',
+          borderRight: '2px solid #000000',
+          borderBottom: '2px solid #000000',
+          boxShadow: '2px 2px 10px rgba(0,0,0,0.5)',
+          padding: '6px 14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          fontFamily: 'ms_sans_serif, Tahoma, sans-serif',
+          fontSize: '11px',
+          fontWeight: 'bold',
+          color: '#000080'
+        }}>
+          <span style={{ fontSize: '15px' }}>💾</span>
+          <div>
+            <div style={{ fontSize: '9px', color: '#555', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Cloud Database Sync
+            </div>
+            <div>{saveToast}</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

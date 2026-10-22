@@ -25,6 +25,10 @@ export default function PrintModal({
     year: 'numeric'
   });
 
+  const signDateStr = paperSettings.signatoryDateMode === 'custom' && paperSettings.signatoryCustomDate
+    ? new Date(paperSettings.signatoryCustomDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+    : todayStr;
+
   return (
     <div className="modal-overlay">
       <div className="modal-card" style={{ width: '850px', maxHeight: '95vh' }}>
@@ -83,7 +87,22 @@ export default function PrintModal({
               marginBottom: '12px'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '2px' }}>
-                <img src="/logo.png" alt="Logo" style={{ height: '24px', width: 'auto' }} onError={(e) => { e.target.style.display = 'none'; }} />
+                {paperSettings.showLogo && (
+                  paperSettings.logoUrl ? (
+                    <img
+                      src={paperSettings.logoUrl}
+                      alt="Logo"
+                      style={{ width: `${paperSettings.logoWidth || 70}px`, height: 'auto', objectFit: 'contain' }}
+                    />
+                  ) : (
+                    <img
+                      src="/logo.png"
+                      alt="Logo"
+                      style={{ height: '26px', width: 'auto' }}
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  )
+                )}
                 <div style={{ fontSize: paperSettings.paperSize === 'Roll80' ? '12px' : '16px', fontWeight: 'bold' }}>
                   {paperSettings.companyName}
                 </div>
@@ -224,20 +243,92 @@ export default function PrintModal({
               </div>
             )}
 
-            {/* Signature Box */}
-            {paperSettings.paperSize !== 'Roll80' && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '30px', padding: '0 10px' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div>Disetujui Oleh,</div>
-                  <div style={{ height: '40px' }}></div>
-                  <div style={{ textDecoration: 'underline', fontWeight: 'bold' }}>Direktur Keuangan</div>
-                  <div style={{ fontSize: '9px', color: '#555' }}>Manajemen PT Chain Asia Connect</div>
+            {/* Signature & Stamp Box */}
+            {paperSettings.paperSize !== 'Roll80' && paperSettings.showSignature !== false && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '30px', padding: '0 10px' }}>
+                <div style={{ textAlign: 'center', minWidth: '150px' }}>
+                  <div style={{ fontSize: '10px' }}>Mengetahui,</div>
+                  <div style={{ height: '55px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {/* Placeholder space */}
+                  </div>
+                  <div style={{ textDecoration: 'underline', fontWeight: 'bold', fontSize: '10px' }}>
+                    {paperSettings.companyName || 'Direksi'}
+                  </div>
+                  <div style={{ fontSize: '9px', color: '#555' }}>Pimpinan Perusahaan</div>
                 </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div>Jakarta, {todayStr}</div>
-                  <div style={{ height: '40px' }}></div>
-                  <div style={{ textDecoration: 'underline', fontWeight: 'bold' }}>{paperSettings.signatoryName}</div>
-                  <div style={{ fontSize: '9px', color: '#555' }}>{paperSettings.signatoryTitle}</div>
+
+                <div style={{ textAlign: 'center', minWidth: '180px', position: 'relative' }}>
+                  <div style={{ fontSize: '10px' }}>
+                    {(paperSettings.signatoryCity || 'Jakarta')}, {signDateStr}
+                  </div>
+                  <div style={{ height: '55px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {/* Authentic Corporate Stamp overlay */}
+                    {paperSettings.showStamp && (
+                      paperSettings.stampImageUrl ? (
+                        <img
+                          src={paperSettings.stampImageUrl}
+                          alt="Cap / Stempel"
+                          style={{
+                            position: 'absolute',
+                            left: '5px',
+                            top: '2px',
+                            maxHeight: '52px',
+                            maxWidth: '75px',
+                            opacity: 0.85,
+                            transform: 'rotate(-5deg)',
+                            pointerEvents: 'none'
+                          }}
+                        />
+                      ) : (
+                        <div style={{
+                          position: 'absolute',
+                          left: '10px',
+                          top: '4px',
+                          border: `2px dashed ${paperSettings.stampColor || '#1a365d'}`,
+                          color: paperSettings.stampColor || '#1a365d',
+                          borderRadius: '50%',
+                          width: '48px',
+                          height: '48px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '7.5px',
+                          fontWeight: 'bold',
+                          textAlign: 'center',
+                          transform: 'rotate(-10deg)',
+                          opacity: 0.85,
+                          lineHeight: '1.1',
+                          padding: '2px'
+                        }}>
+                          {paperSettings.stampText || 'LUNAS / SAH'}
+                        </div>
+                      )
+                    )}
+
+                    {/* Signature (TTD) */}
+                    {paperSettings.signatureImageUrl ? (
+                      <img
+                        src={paperSettings.signatureImageUrl}
+                        alt="Tanda Tangan"
+                        style={{
+                          maxHeight: '48px',
+                          maxWidth: '120px',
+                          objectFit: 'contain',
+                          zIndex: 2
+                        }}
+                      />
+                    ) : (
+                      <div style={{ fontStyle: 'italic', color: '#888', fontSize: '10px', fontFamily: 'serif' }}>
+                        ( Tanda Tangan Digital )
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ textDecoration: 'underline', fontWeight: 'bold', fontSize: '10px' }}>
+                    {paperSettings.signatoryName || 'Penanggung Jawab'}
+                  </div>
+                  <div style={{ fontSize: '9px', color: '#555' }}>
+                    {paperSettings.signatoryTitle || 'Staff Akuntansi'}
+                  </div>
                 </div>
               </div>
             )}

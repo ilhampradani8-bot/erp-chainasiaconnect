@@ -20,10 +20,14 @@ export default function DashboardView({
   trialBalanceData,
   transactions,
   accounts,
-  onNavigate
+  onNavigate,
+  paperSettings
 }) {
   const { totalRevenue, totalCogs, totalOpExpenses, netIncome } = incomeData;
   const { totalAssets, totalLiabilities, totalEquity, isBalanced } = balanceSheetData;
+
+  const company = paperSettings?.companyName || 'PT. CHAIN ASIA CONNECT';
+  const currentPeriodStr = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date());
 
   // 1. Dynamic Bar Categories: Calculate real revenue and expense distribution
   const allRevAccounts = [...(incomeData.revenueAccounts || []), ...(incomeData.otherRevenueAccounts || [])].filter(a => a.amount > 0);
@@ -42,14 +46,13 @@ export default function DashboardView({
       color: '#800000'
     }));
     barCategories = [...topRev, ...topExp];
-  } else {
-    // Dynamic category breakdown when no granular account data yet
+  } else if (totalRevenue > 0 || totalCogs > 0 || totalOpExpenses > 0) {
     barCategories = [
       { label: 'Pendapatan Usaha', value: totalRevenue, color: '#00007c' },
       { label: 'Beban Pokok Pendapatan (HPP)', value: totalCogs, color: '#800000' },
       { label: 'Beban Operasional Usaha', value: totalOpExpenses, color: '#a0522d' },
       { label: 'Laba Bersih Berjalan', value: Math.max(0, netIncome), color: '#006600' }
-    ];
+    ].filter(b => b.value > 0);
   }
 
   const maxBarValue = Math.max(1, ...barCategories.map(b => b.value));
@@ -116,7 +119,7 @@ export default function DashboardView({
             DASHBOARD KINERJA KEUANGAN & GRAFIK EKSEKUTIF
           </div>
           <div style={{ fontSize: '11px', color: '#555' }}>
-            PT. CHAIN ASIA CONNECT - Laporan Akuntansi Periode Berjalan (SAK ETAP Indonesia)
+            {company} - Laporan Akuntansi Periode {currentPeriodStr} (SAK ETAP)
           </div>
         </div>
 
@@ -145,7 +148,7 @@ export default function DashboardView({
             {formatRupiah(totalRevenue)}
           </div>
           <div style={metricSubStyle}>
-            Freight, Port handling & Gudang
+            {allRevAccounts.length > 0 ? `${allRevAccounts.length} Akun Pendapatan Aktif` : '0 Transaksi'}
           </div>
         </div>
 
@@ -159,7 +162,7 @@ export default function DashboardView({
             {formatRupiah(totalCogs + totalOpExpenses)}
           </div>
           <div style={metricSubStyle}>
-            Freight kapal, BBM tol, utilitas
+            {allExpAccounts.length > 0 ? `${allExpAccounts.length} Akun Beban Aktif` : '0 Transaksi'}
           </div>
         </div>
 
@@ -173,7 +176,7 @@ export default function DashboardView({
             {formatRupiah(netIncome)}
           </div>
           <div style={metricSubStyle}>
-            Margin Bersih: {totalRevenue > 0 ? ((netIncome / totalRevenue) * 100).toFixed(1) : 0}%
+            {totalRevenue > 0 ? `Margin Bersih: ${((netIncome / totalRevenue) * 100).toFixed(1)}%` : 'Margin Bersih: 0%'}
           </div>
         </div>
 
@@ -187,7 +190,7 @@ export default function DashboardView({
             {formatRupiah(totalAssets)}
           </div>
           <div style={{ ...metricSubStyle, color: isBalanced ? '#006600' : '#b00', fontWeight: 'bold' }}>
-            {isBalanced ? '✓ Neraca Seimbang 100%' : '⚠ Selisih Pembukuan!'}
+            {transactions.length === 0 ? 'Neraca Awal Bersih (Rp 0)' : (isBalanced ? '✓ Neraca Seimbang 100%' : '⚠ Selisih Pembukuan!')}
           </div>
         </div>
       </div>
@@ -211,7 +214,7 @@ export default function DashboardView({
             justifyContent: 'space-between',
             marginBottom: '6px'
           }}>
-            <span>📊 Grafik Distribusi Pos Pendapatan & Beban Utama</span>
+            <span>📊 Grafik Distribusi Pos Pendapatan & Beban</span>
             <span style={{ fontSize: '10px' }}>Nominal (IDR)</span>
           </div>
 
@@ -222,34 +225,53 @@ export default function DashboardView({
             height: '220px',
             overflowY: 'auto'
           }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {barCategories.map((item, idx) => {
-                const pct = Math.round((item.value / maxBarValue) * 100);
-                return (
-                  <div key={idx} style={{ fontSize: '11px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                      <span style={{ fontWeight: '500' }}>{item.label}</span>
-                      <span style={{ fontFamily: 'Courier New, monospace', fontWeight: 'bold' }}>{formatRupiah(item.value)}</span>
-                    </div>
-                    {/* Retro Windows 3D Bar */}
-                    <div style={{
-                      height: '14px',
-                      backgroundColor: '#e0e0e0',
-                      border: '1px solid #808080',
-                      position: 'relative'
-                    }}>
+            {transactions.length === 0 || barCategories.length === 0 ? (
+              <div style={{
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#666',
+                fontStyle: 'italic',
+                fontSize: '11px',
+                textAlign: 'center',
+                padding: '16px',
+                gap: '4px'
+              }}>
+                <span>📊 Belum ada data transaksi pendapatan & beban tercatat.</span>
+                <span style={{ fontSize: '10px', color: '#888' }}>Grafik akan otomatis terisi saat entri jurnal dicatat.</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {barCategories.map((item, idx) => {
+                  const pct = Math.round((item.value / maxBarValue) * 100);
+                  return (
+                    <div key={idx} style={{ fontSize: '11px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                        <span style={{ fontWeight: '500' }}>{item.label}</span>
+                        <span style={{ fontFamily: 'Courier New, monospace', fontWeight: 'bold' }}>{formatRupiah(item.value)}</span>
+                      </div>
+                      {/* Retro Windows 3D Bar */}
                       <div style={{
-                        width: `${pct}%`,
-                        height: '100%',
-                        backgroundColor: item.color,
-                        borderRight: '1px solid #000',
-                        backgroundImage: 'linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(0,0,0,0.1) 100%)'
-                      }} />
+                        height: '14px',
+                        backgroundColor: '#e0e0e0',
+                        border: '1px solid #808080',
+                        position: 'relative'
+                      }}>
+                        <div style={{
+                          width: `${pct}%`,
+                          height: '100%',
+                          backgroundColor: item.color,
+                          borderRight: '1px solid #000',
+                          backgroundImage: 'linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(0,0,0,0.1) 100%)'
+                        }} />
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
@@ -301,65 +323,85 @@ export default function DashboardView({
 
             {/* SVG Visual Graphic */}
             <div style={{ flex: 1, position: 'relative', marginTop: '6px' }}>
-              <svg viewBox="0 0 300 130" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                {/* Grid Lines */}
-                <line x1="25" y1="20" x2="290" y2="20" stroke="#f0f0f0" strokeDasharray="2,2" />
-                <line x1="25" y1="55" x2="290" y2="55" stroke="#f0f0f0" strokeDasharray="2,2" />
-                <line x1="25" y1="90" x2="290" y2="90" stroke="#f0f0f0" strokeDasharray="2,2" />
-                <line x1="25" y1="120" x2="290" y2="120" stroke="#808080" />
-                <line x1="25" y1="10" x2="25" y2="120" stroke="#808080" />
+              {transactions.length === 0 ? (
+                <div style={{
+                  height: '100%',
+                  minHeight: '130px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#666',
+                  fontStyle: 'italic',
+                  fontSize: '11px',
+                  textAlign: 'center',
+                  padding: '16px',
+                  gap: '4px'
+                }}>
+                  <span>📈 Belum ada riwayat transaksi bulanan.</span>
+                  <span style={{ fontSize: '10px', color: '#888' }}>Kurva tren finansial akan terbentuk otomatis saat transaksi dicatat.</span>
+                </div>
+              ) : (
+                <svg viewBox="0 0 300 130" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                  {/* Grid Lines */}
+                  <line x1="25" y1="20" x2="290" y2="20" stroke="#f0f0f0" strokeDasharray="2,2" />
+                  <line x1="25" y1="55" x2="290" y2="55" stroke="#f0f0f0" strokeDasharray="2,2" />
+                  <line x1="25" y1="90" x2="290" y2="90" stroke="#f0f0f0" strokeDasharray="2,2" />
+                  <line x1="25" y1="120" x2="290" y2="120" stroke="#808080" />
+                  <line x1="25" y1="10" x2="25" y2="120" stroke="#808080" />
 
-                {/* Y-axis labels dynamically calculated */}
-                <text x="3" y="24" fontSize="8" fill="#666">{maxMonthlyVal}</text>
-                <text x="3" y="59" fontSize="8" fill="#666">{Math.round((maxMonthlyVal * 2) / 3)}</text>
-                <text x="3" y="94" fontSize="8" fill="#666">{Math.round(maxMonthlyVal / 3)}</text>
-                <text x="12" y="123" fontSize="8" fill="#666">0</text>
+                  {/* Y-axis labels dynamically calculated */}
+                  <text x="3" y="24" fontSize="8" fill="#666">{maxMonthlyVal}</text>
+                  <text x="3" y="59" fontSize="8" fill="#666">{Math.round((maxMonthlyVal * 2) / 3)}</text>
+                  <text x="3" y="94" fontSize="8" fill="#666">{Math.round(maxMonthlyVal / 3)}</text>
+                  <text x="12" y="123" fontSize="8" fill="#666">0</text>
 
-                {/* Points: Rev */}
-                <polyline
-                  fill="none"
-                  stroke="#00007c"
-                  strokeWidth="2"
-                  points={monthlyData.map((d, i) => `${45 + i * 44},${120 - Math.min(100, Math.max(0, (d.rev / maxMonthlyVal) * 100))}`).join(' ')}
-                />
-                {monthlyData.map((d, i) => (
-                  <circle key={`r-${i}`} cx={45 + i * 44} cy={120 - Math.min(100, Math.max(0, (d.rev / maxMonthlyVal) * 100))} r="3" fill="#00007c">
-                    <title>{`${d.month}: Pendapatan ${formatRupiah(d.rawRev)}`}</title>
-                  </circle>
-                ))}
+                  {/* Points: Rev */}
+                  <polyline
+                    fill="none"
+                    stroke="#00007c"
+                    strokeWidth="2"
+                    points={monthlyData.map((d, i) => `${45 + i * 44},${120 - Math.min(100, Math.max(0, (d.rev / maxMonthlyVal) * 100))}`).join(' ')}
+                  />
+                  {monthlyData.map((d, i) => (
+                    <circle key={`r-${i}`} cx={45 + i * 44} cy={120 - Math.min(100, Math.max(0, (d.rev / maxMonthlyVal) * 100))} r="3" fill="#00007c">
+                      <title>{`${d.month}: Pendapatan ${formatRupiah(d.rawRev)}`}</title>
+                    </circle>
+                  ))}
 
-                {/* Points: Exp */}
-                <polyline
-                  fill="none"
-                  stroke="#800000"
-                  strokeWidth="2"
-                  points={monthlyData.map((d, i) => `${45 + i * 44},${120 - Math.min(100, Math.max(0, (d.exp / maxMonthlyVal) * 100))}`).join(' ')}
-                />
-                {monthlyData.map((d, i) => (
-                  <circle key={`e-${i}`} cx={45 + i * 44} cy={120 - Math.min(100, Math.max(0, (d.exp / maxMonthlyVal) * 100))} r="3" fill="#800000">
-                    <title>{`${d.month}: Beban ${formatRupiah(d.rawExp)}`}</title>
-                  </circle>
-                ))}
+                  {/* Points: Exp */}
+                  <polyline
+                    fill="none"
+                    stroke="#800000"
+                    strokeWidth="2"
+                    points={monthlyData.map((d, i) => `${45 + i * 44},${120 - Math.min(100, Math.max(0, (d.exp / maxMonthlyVal) * 100))}`).join(' ')}
+                  />
+                  {monthlyData.map((d, i) => (
+                    <circle key={`e-${i}`} cx={45 + i * 44} cy={120 - Math.min(100, Math.max(0, (d.exp / maxMonthlyVal) * 100))} r="3" fill="#800000">
+                      <title>{`${d.month}: Beban ${formatRupiah(d.rawExp)}`}</title>
+                    </circle>
+                  ))}
 
-                {/* Points: Profit */}
-                <polyline
-                  fill="none"
-                  stroke="#006600"
-                  strokeWidth="2"
-                  strokeDasharray="3,2"
-                  points={monthlyData.map((d, i) => `${45 + i * 44},${120 - Math.min(100, Math.max(0, (d.profit / maxMonthlyVal) * 100))}`).join(' ')}
-                />
-                {monthlyData.map((d, i) => (
-                  <rect key={`p-${i}`} x={43 + i * 44} y={118 - Math.min(100, Math.max(0, (d.profit / maxMonthlyVal) * 100))} width="4" height="4" fill="#006600">
-                    <title>{`${d.month}: Laba ${formatRupiah(d.rawProfit)}`}</title>
-                  </rect>
-                ))}
+                  {/* Points: Profit */}
+                  <polyline
+                    fill="none"
+                    stroke="#006600"
+                    strokeWidth="2"
+                    strokeDasharray="3,2"
+                    points={monthlyData.map((d, i) => `${45 + i * 44},${120 - Math.min(100, Math.max(0, (d.profit / maxMonthlyVal) * 100))}`).join(' ')}
+                  />
+                  {monthlyData.map((d, i) => (
+                    <rect key={`p-${i}`} x={43 + i * 44} y={118 - Math.min(100, Math.max(0, (d.profit / maxMonthlyVal) * 100))} width="4" height="4" fill="#006600">
+                      <title>{`${d.month}: Laba ${formatRupiah(d.rawProfit)}`}</title>
+                    </rect>
+                  ))}
 
-                {/* X labels */}
-                {monthlyData.map((d, i) => (
-                  <text key={`l-${i}`} x={38 + i * 44} y="130" fontSize="9" fill="#333">{d.month}</text>
-                ))}
-              </svg>
+                  {/* X labels */}
+                  {monthlyData.map((d, i) => (
+                    <text key={`l-${i}`} x={38 + i * 44} y="130" fontSize="9" fill="#333">{d.month}</text>
+                  ))}
+                </svg>
+              )}
             </div>
           </div>
         </div>
