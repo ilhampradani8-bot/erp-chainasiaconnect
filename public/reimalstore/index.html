@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Reimal Store - Vercel Admin Panel 95 (Supabase Edition)</title>
+  <!-- Supabase JS Client v2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border-radius: 0 !important;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: #008080;
+      font-family: 'MS Sans Serif', Tahoma, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      color: #000000;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 42px;
+    }
+
+    .win-outset {
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #000000;
+      border-bottom: 2px solid #000000;
+      background: #c0c0c0;
+    }
+
+    .win-inset {
+      border-top: 2px solid #000000;
+      border-left: 2px solid #000000;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      background: #ffffff;
+    }
+
+    .app-window {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 2px 12px rgba(0,0,0,0.6);
+    }
+
+    .title-bar {
+      background: linear-gradient(90deg, #000080, #1084d0);
+      padding: 5px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #ffffff;
+      font-weight: bold;
+      user-select: none;
+    }
+
+    .title-bar-text {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .title-bar-controls {
+      display: flex;
+      gap: 2px;
+    }
+
+    .title-btn {
+      width: 22px;
+      height: 22px;
+      font-size: 11px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #c0c0c0;
+      border-top: 1px solid #fff;
+      border-left: 1px solid #fff;
+      border-right: 1px solid #000;
+      border-bottom: 1px solid #000;
+      cursor: pointer;
+    }
+
+    .tabs-bar {
+      display: flex;
+      background: #c0c0c0;
+      padding: 6px 6px 0 6px;
+      overflow-x: auto;
+      gap: 4px;
+      border-bottom: 2px solid #ffffff;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .tab-button {
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: bold;
+      background: #c0c0c0;
+      border-top: 2px solid #fff;
+      border-left: 2px solid #fff;
+      border-right: 2px solid #000;
+      border-bottom: none;
+      cursor: pointer;
+      white-space: nowrap;
+      min-height: 38px;
+    }
+
+    .tab-button.active {
+      background: #e0e0e0;
+      border-bottom: 2px solid #e0e0e0;
+      margin-bottom: -2px;
+      padding-top: 10px;
+    }
+
+    .window-body {
+      background: #c0c0c0;
+      padding: 10px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    .groupbox {
+      border: 2px groove #ffffff;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: #c0c0c0;
+    }
+
+    .groupbox-legend {
+      font-weight: bold;
+      padding: 0 6px;
+      background: #c0c0c0;
+      font-size: 12px;
+      color: #000080;
+    }
+
+    .form-group {
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+
+    input[type="text"], input[type="password"], select, textarea {
+      width: 100%;
+      padding: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      border-top: 2px solid #000;
+      border-left: 2px solid #000;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      background: #fff;
+      outline: none;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: bold;
+      background: #c0c0c0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #000000;
+      border-bottom: 2px solid #000000;
+      cursor: pointer;
+      min-height: 38px;
+      touch-action: manipulation;
+    }
+
+    .btn:active {
+      border-top: 2px solid #000000;
+      border-left: 2px solid #000000;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      background: #b0b0b0;
+    }
+
+    .btn-primary {
+      background: #000080;
+      color: #ffffff;
+      border-top: 2px solid #1084d0;
+      border-left: 2px solid #1084d0;
+      border-right: 2px solid #000040;
+      border-bottom: 2px solid #000040;
+    }
+
+    .btn-success {
+      background: #006000;
+      color: #ffffff;
+    }
+
+    .btn-danger {
+      background: #800000;
+      color: #ffffff;
+    }
+
+    .product-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 480px;
+      overflow-y: auto;
+      padding: 4px;
+      background: #fff;
+      border-top: 2px solid #000;
+      border-left: 2px solid #000;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+    }
+
+    .product-card {
+      border: 1px solid #a0a0a0;
+      background: #f4f4f4;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .product-info h4 {
+      font-size: 13px;
+      color: #000080;
+    }
+
+    .product-info span {
+      font-size: 11px;
+      color: #555;
+    }
+
+    .wa-preview {
+      background: #e5ddd5;
+      padding: 12px;
+      border-top: 2px solid #000;
+      border-left: 2px solid #000;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #111;
+      line-height: 1.4;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    #notif {
+      display: none;
+      padding: 10px;
+      background: #ffffcc;
+      border: 2px solid #999900;
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+
+    .taskbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      background: #c0c0c0;
+      border-top: 2px solid #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 4px;
+      z-index: 9999;
+    }
+
+    .start-button {
+      height: 28px;
+      padding: 2px 8px;
+      font-weight: bold;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #c0c0c0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #000000;
+      border-bottom: 2px solid #000000;
+      cursor: pointer;
+    }
+
+    .tray {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-top: 1px solid #808080;
+      border-left: 1px solid #808080;
+      border-right: 1px solid #ffffff;
+      border-bottom: 1px solid #ffffff;
+      padding: 2px 6px;
+      font-size: 11px;
+    }
+
+    .badge-online {
+      color: #008000;
+      font-weight: bold;
+    }
+
+    .badge-offline {
+      color: #800000;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-window win-outset">
+    <!-- Title Bar -->
+    <div class="title-bar">
+      <div class="title-bar-text">
+        <span>💾</span>
+        <span>Reimal Store Control Panel 95 (Vercel + Supabase)</span>
+      </div>
+      <div class="title-bar-controls">
+        <button class="title-btn" onclick="location.reload()">_</button>
+        <button class="title-btn" onclick="location.reload()">X</button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs-bar">
+      <button class="tab-button active" onclick="switchTab('tab-products')">📁 Produk & Harga</button>
+      <button class="tab-button" onclick="switchTab('tab-templates')">🎨 Tampilan List</button>
+      <button class="tab-button" onclick="switchTab('tab-autoreply')">💬 Auto-Reply PC</button>
+      <button class="tab-button" onclick="switchTab('tab-supabase')">⚡ Setup Supabase</button>
+    </div>
+
+    <!-- Window Body -->
+    <div class="window-body">
+      <div id="notif"></div>
+
+      <!-- TAB 1: PRODUK & HARGA -->
+      <div id="tab-products" class="tab-pane active">
+        <div class="groupbox">
+          <span class="groupbox-legend">Pencarian & Kelola Produk (Sinkron Supabase)</span>
+          <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+            <input type="text" id="prod-search" placeholder="Cari produk (netflix, canva, ig...)" oninput="filterProducts()">
+            <button class="btn btn-primary" onclick="openProductModal()">+ Tambah</button>
+          </div>
+          <div class="product-list" id="product-container">
+            <div style="padding: 10px;">Memuat data dari Supabase...</div>
+          </div>
+        </div>
+
+        <!-- Edit Form Popup / Modal -->
+        <div id="edit-box" class="groupbox" style="display: none;">
+          <span class="groupbox-legend" id="edit-box-title">Edit Produk</span>
+          <input type="hidden" id="edit-id">
+          
+          <div class="form-group">
+            <label>Nama Produk:</label>
+            <input type="text" id="edit-title">
+          </div>
+
+          <div class="form-group">
+            <label>Kategori:</label>
+            <select id="edit-category">
+              <option value="streaming_entertainment">🎬 STREAMING & HIBURAN</option>
+              <option value="photo_video_editing">🎨 EDITING FOTO & VIDEO</option>
+              <option value="study_productivity_tools">📚 BELAJAR & PRODUKTIVITAS</option>
+              <option value="smm_services">🚀 SMM & SOSIAL MEDIA</option>
+              <option value="general_products">📦 PRODUK LAINNYA</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Rincian Paket & Harga (Bisa Edit Bebas):</label>
+            <textarea id="edit-content" rows="6"></textarea>
+          </div>
+
+          <div style="display: flex; gap: 6px;">
+            <button class="btn btn-primary" onclick="saveProductToSupabase()">💾 Simpan ke Supabase</button>
+            <button class="btn" onclick="closeProductModal()">Batal</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: TAMPILAN LIST & DETAIL -->
+      <div id="tab-templates" class="tab-pane">
+        <div class="groupbox">
+          <span class="groupbox-legend">1. Setup Tampilan Mode List (Ringkas)</span>
+          <div class="form-group">
+            <label>Header / Judul Atas (Mode List):</label>
+            <textarea id="tpl-list-header" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Footer / Catatan Bawah (Mode List):</label>
+            <textarea id="tpl-list-footer" rows="3"></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="saveTemplatesToSupabase()">💾 Simpan ke Supabase</button>
+        </div>
+
+        <div class="groupbox">
+          <span class="groupbox-legend">2. Setup Tampilan Mode Detail List (Lengkap)</span>
+          <div class="form-group">
+            <label>Header / Judul Atas (Detail List):</label>
+            <textarea id="tpl-detail-header" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Footer / Catatan Bawah (Detail List):</label>
+            <textarea id="tpl-detail-footer" rows="3"></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="saveTemplatesToSupabase()">💾 Simpan ke Supabase</button>
+        </div>
+      </div>
+
+      <!-- TAB 3: AUTO-REPLY CHAT PRIBADI -->
+      <div id="tab-autoreply" class="tab-pane">
+        <div class="groupbox">
+          <span class="groupbox-legend">Pengaturan Balasan Chat Pribadi (PC)</span>
+          
+          <div class="form-group">
+            <label>Nomor WhatsApp Admin (Format 628xxx):</label>
+            <input type="text" id="cfg-admin-contact" placeholder="628123456789">
+          </div>
+
+          <div class="form-group">
+            <label>Pesan Penjelasan Auto-Reply (Bebas Edit):</label>
+            <textarea id="cfg-explanation" rows="4"></textarea>
+          </div>
+
+          <button class="btn btn-primary" onclick="saveConfigToSupabase()">💾 Simpan ke Supabase</button>
+        </div>
+
+        <div class="groupbox">
+          <span class="groupbox-legend">📱 Live Preview Balasan di WhatsApp:</span>
+          <div class="wa-preview" id="wa-preview-box">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: SETUP SUPABASE (KONEKSI CLOUD) -->
+      <div id="tab-supabase" class="tab-pane">
+        <div class="groupbox">
+          <span class="groupbox-legend">Koneksi Database Supabase Cloud</span>
+          <p style="margin-bottom: 10px; font-size: 11px; line-height: 1.4;">
+            Masukkan Project URL dan Anon Key dari dashboard Supabase Anda. Kunci ini disimpan aman di browser HP Anda.
+          </p>
+
+          <div class="form-group">
+            <label>Supabase Project URL:</label>
+            <input type="text" id="sb-url" placeholder="https://your-project.supabase.co">
+          </div>
+
+          <div class="form-group">
+            <label>Supabase Anon Key (Public Key):</label>
+            <input type="password" id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+          </div>
+
+          <div style="display: flex; gap: 6px;">
+            <button class="btn btn-primary" onclick="saveSupabaseSettings()">🔌 Sambungkan Supabase</button>
+            <button class="btn" onclick="testSupabaseConnection()">⚡ Tes Koneksi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Windows 95 Taskbar -->
+  <div class="taskbar">
+    <div class="start-button" onclick="alert('Reimal Store Control Panel 95 (Vercel Edition)\nDatabase: Supabase Cloud')">
+      <span>🪟</span>
+      <span>Start</span>
+    </div>
+    <div class="tray">
+      <span id="sb-status-badge">⚡ Memeriksa Database...</span>
+      <span id="clock">12:00</span>
+    </div>
+  </div>
+
+  <script>
+    let supabase = null;
+    let allProducts = [];
+
+    function showNotif(msg) {
+      const n = document.getElementById('notif');
+      n.innerText = msg;
+      n.style.display = 'block';
+      setTimeout(() => { n.style.display = 'none'; }, 4000);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    // 1. Supabase Initialization
+    const DEFAULT_SB_URL = 'https://scsetyfsgycomcipfxkc.supabase.co';
+    const DEFAULT_SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjc2V0eWZzZ3ljb21jaXBmeGtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1MTgxODksImV4cCI6MjEwOTA5NDE4OX0.e4yzBYv7aPOIhUcgoZBtV9B5Ybs72B9ng2D4Pd8Dnjk';
+
+    function initSupabase() {
+      const url = localStorage.getItem('reimal_sb_url') || DEFAULT_SB_URL;
+      const key = localStorage.getItem('reimal_sb_key') || DEFAULT_SB_KEY;
+
+      document.getElementById('sb-url').value = url;
+      document.getElementById('sb-key').value = key;
+
+      if (url && key && window.supabase) {
+        try {
+          supabase = window.supabase.createClient(url, key);
+          document.getElementById('sb-status-badge').innerHTML = '<span class="badge-online">⚡ Supabase Terhubung</span>';
+          loadAllDataFromSupabase();
+        } catch (e) {
+          document.getElementById('sb-status-badge').innerHTML = '<span class="badge-offline">❌ Gagal Terhubung</span>';
+        }
+      } else {
+        document.getElementById('sb-status-badge').innerHTML = '<span class="badge-offline">⚠️ Belum Disetup</span>';
+        switchTab('tab-supabase');
+      }
+    }
+
+    function saveSupabaseSettings() {
+      const url = document.getElementById('sb-url').value.trim();
+      const key = document.getElementById('sb-key').value.trim();
+
+      if (!url || !key) return alert('URL dan Anon Key wajib diisi!');
+
+      localStorage.setItem('reimal_sb_url', url);
+      localStorage.setItem('reimal_sb_key', key);
+      showNotif('✅ Kunci Supabase disimpan di HP!');
+      initSupabase();
+    }
+
+    async function testSupabaseConnection() {
+      if (!supabase) return alert('Silakan isi URL dan Key lalu klik Sambungkan!');
+      try {
+        const { data, error } = await supabase.from('products').select('count');
+        if (error) throw error;
+        alert('🎉 Koneksi Berhasil! Database Supabase siap digunakan.');
+      } catch (err) {
+        alert('Gagal koneksi: ' + err.message);
+      }
+    }
+
+    // 2. Load Data from Supabase
+    async function loadAllDataFromSupabase() {
+      if (!supabase) return;
+
+      // A. Load Products
+      try {
+        const { data, error } = await supabase.from('products').select('*').order('normalized_title', { ascending: true });
+        if (!error && data) {
+          allProducts = data;
+          renderProducts(allProducts);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      // B. Load Templates
+      try {
+        const { data: tpls } = await supabase.from('templates').select('*');
+        if (tpls) {
+          tpls.forEach(t => {
+            if (t.id === 'list') {
+              document.getElementById('tpl-list-header').value = t.header || '';
+              document.getElementById('tpl-list-footer').value = t.footer || '';
+            }
+            if (t.id === 'detail') {
+              document.getElementById('tpl-detail-header').value = t.header || '';
+              document.getElementById('tpl-detail-footer').value = t.footer || '';
+            }
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      // C. Load Config
+      try {
+        const { data: cfg } = await supabase.from('bot_config').select('*').eq('id', 'main_config').single();
+        if (cfg) {
+          document.getElementById('cfg-admin-contact').value = cfg.admin_contact || '';
+          document.getElementById('cfg-explanation').value = cfg.private_chat_explanation || '';
+          updateLivePreview();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderProducts(items) {
+      const container = document.getElementById('product-container');
+      if (!items.length) {
+        container.innerHTML = '<div style="padding: 10px; color: #777;">Belum ada produk di database. Klik tombol "+ Tambah" di atas.</div>';
+        return;
+      }
+      container.innerHTML = items.map(p => `
+        <div class="product-card">
+          <div class="product-info">
+            <h4>${p.normalized_title || p.title}</h4>
+            <span>Mulai: Rp ${(p.min_price || 0).toLocaleString('id-ID')} | ${p.category}</span>
+          </div>
+          <div class="product-actions">
+            <button class="btn" onclick="editProduct('${p.id}')">Edit</button>
+            <button class="btn btn-danger" onclick="deleteProductFromSupabase('${p.id}', '${p.normalized_title}')">Hapus</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterProducts() {
+      const q = document.getElementById('prod-search').value.toLowerCase();
+      const filtered = allProducts.filter(p => 
+        (p.normalized_title || p.title).toLowerCase().includes(q)
+      );
+      renderProducts(filtered);
+    }
+
+    function openProductModal(prod = null) {
+      document.getElementById('edit-box').style.display = 'block';
+      if (prod) {
+        document.getElementById('edit-box-title').innerText = 'Edit Produk: ' + prod.normalized_title;
+        document.getElementById('edit-id').value = prod.id;
+        document.getElementById('edit-title').value = prod.normalized_title;
+        document.getElementById('edit-category').value = prod.category || 'general_products';
+        document.getElementById('edit-content').value = prod.normalized_content || prod.clean_content || '';
+      } else {
+        document.getElementById('edit-box-title').innerText = 'Tambah Produk Baru';
+        document.getElementById('edit-id').value = 'custom_' + Date.now();
+        document.getElementById('edit-title').value = '';
+        document.getElementById('edit-category').value = 'general_products';
+        document.getElementById('edit-content').value = '» 1 Bulan : ';
+      }
+      document.getElementById('edit-box').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function closeProductModal() {
+      document.getElementById('edit-box').style.display = 'none';
+    }
+
+    function editProduct(id) {
+      const p = allProducts.find(x => x.id === id);
+      if (p) openProductModal(p);
+    }
+
+    // Save Product Directly to Supabase
+    async function saveProductToSupabase() {
+      if (!supabase) return alert('Hubungkan Supabase terlebih dahulu di tab Setup!');
+      const id = document.getElementById('edit-id').value;
+      const title = document.getElementById('edit-title').value.trim().toUpperCase();
+      const category = document.getElementById('edit-category').value;
+      const content = document.getElementById('edit-content').value.trim();
+
+      if (!title) return alert('Nama produk wajib diisi!');
+
+      const digits = content.replace(/[^0-9]/g, '');
+      const minPrice = digits ? parseInt(digits.slice(0, 5), 10) : 0;
+
+      const payload = {
+        id,
+        title,
+        normalized_title: title,
+        category,
+        clean_content: content,
+        normalized_content: content,
+        min_price: minPrice,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase.from('products').upsert(payload);
+      if (error) {
+        alert('Gagal simpan ke Supabase: ' + error.message);
+      } else {
+        showNotif('✅ Produk tersimpan di Supabase! Bot WA akan otomatis menyinkronkan.');
+        closeProductModal();
+        loadAllDataFromSupabase();
+      }
+    }
+
+    async function deleteProductFromSupabase(id, name) {
+      if (!confirm(`Hapus produk "${name}" dari Supabase?`)) return;
+      const { error } = await supabase.from('products').delete().eq('id', id);
+      if (error) {
+        alert('Gagal hapus: ' + error.message);
+      } else {
+        showNotif('🗑️ Produk dihapus dari Supabase!');
+        loadAllDataFromSupabase();
+      }
+    }
+
+    // Save Templates to Supabase
+    async function saveTemplatesToSupabase() {
+      if (!supabase) return alert('Hubungkan Supabase terlebih dahulu di tab Setup!');
+
+      const listHeader = document.getElementById('tpl-list-header').value;
+      const listFooter = document.getElementById('tpl-list-footer').value;
+      const detailHeader = document.getElementById('tpl-detail-header').value;
+      const detailFooter = document.getElementById('tpl-detail-footer').value;
+
+      const { error } = await supabase.from('templates').upsert([
+        { id: 'list', header: listHeader, footer: listFooter, updated_at: new Date().toISOString() },
+        { id: 'detail', header: detailHeader, footer: detailFooter, updated_at: new Date().toISOString() }
+      ]);
+
+      if (error) {
+        alert('Gagal simpan template: ' + error.message);
+      } else {
+        showNotif('✅ Tampilan List & Detail tersimpan di Supabase!');
+      }
+    }
+
+    // Save Config to Supabase
+    async function saveConfigToSupabase() {
+      if (!supabase) return alert('Hubungkan Supabase terlebih dahulu di tab Setup!');
+
+      const adminContact = document.getElementById('cfg-admin-contact').value.replace(/[^0-9]/g, '');
+      const explanation = document.getElementById('cfg-explanation').value;
+
+      const { error } = await supabase.from('bot_config').upsert({
+        id: 'main_config',
+        admin_contact: adminContact,
+        private_chat_explanation: explanation,
+        updated_at: new Date().toISOString()
+      });
+
+      if (error) {
+        alert('Gagal simpan config: ' + error.message);
+      } else {
+        showNotif('✅ Pengaturan Chat Pribadi tersimpan di Supabase!');
+      }
+    }
+
+    function updateLivePreview() {
+      const contact = document.getElementById('cfg-admin-contact').value || '628xxxxxxxxxx';
+      const expl = document.getElementById('cfg-explanation').value || 'Maaf, silakan chat admin di nomor berikut.';
+      
+      const sample = `Halo *Budi*! 👋\n\n📌 *Status Grup:* Terdeteksi Anda bergabung di grup: *REIMAL STORE OFFICIAL* ✅\n\n💬 *Pesan:* ${expl}\n📞 *Kontak Admin:* wa.me/${contact}\n\n────────────────\n💡 _Anda tetap dapat mengecek harga di sini:_\n• Ketik *list* atau *daftar* ➔ Mode Ringkas\n• Ketik *detail list* ➔ Mode Detail Lengkap\n• Ketik langsung nama produk (contoh: *netflix*, *spotify*, *ig*)`;
+
+      document.getElementById('wa-preview-box').innerText = sample;
+    }
+
+    document.getElementById('cfg-admin-contact').addEventListener('input', updateLivePreview);
+    document.getElementById('cfg-explanation').addEventListener('input', updateLivePreview);
+
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }, 1000);
+
+    // Run on startup
+    window.addEventListener('DOMContentLoaded', initSupabase);
+  </script>
+</body>
+</html>
