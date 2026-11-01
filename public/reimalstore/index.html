@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Reimal Store - Vercel Admin Panel 95 (Supabase Edition)</title>
+  <title>Reimal Store - Admin Control Panel 95</title>
   <!-- Supabase JS Client v2 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -13,19 +13,21 @@
       padding: 0;
       border-radius: 0 !important;
       -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background-color: #008080;
+      background-color: #008080; /* Windows 95 Classic Teal */
       font-family: 'MS Sans Serif', Tahoma, 'Segoe UI', sans-serif;
       font-size: 13px;
       color: #000000;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      padding-bottom: 42px;
+      position: relative;
     }
 
+    /* Windows 95 3D Bevel Styles */
     .win-outset {
       border-top: 2px solid #ffffff;
       border-left: 2px solid #ffffff;
@@ -42,106 +44,222 @@
       background: #ffffff;
     }
 
-    .app-window {
+    /* Main Container */
+    .app-wrapper {
       width: 100%;
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto;
       flex: 1;
       display: flex;
       flex-direction: column;
-      box-shadow: 2px 2px 12px rgba(0,0,0,0.6);
+      height: 100vh;
+      overflow: hidden;
+      box-shadow: 3px 3px 16px rgba(0,0,0,0.6);
     }
 
+    /* Top Title Bar */
     .title-bar {
       background: linear-gradient(90deg, #000080, #1084d0);
-      padding: 5px 8px;
+      padding: 6px 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       color: #ffffff;
       font-weight: bold;
       user-select: none;
+      flex-shrink: 0;
     }
 
-    .title-bar-text {
+    .title-left {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .title-bar-controls {
-      display: flex;
-      gap: 2px;
-    }
-
-    .title-btn {
-      width: 22px;
-      height: 22px;
-      font-size: 11px;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .menu-trigger-btn {
       background: #c0c0c0;
-      border-top: 1px solid #fff;
-      border-left: 1px solid #fff;
-      border-right: 1px solid #000;
-      border-bottom: 1px solid #000;
-      cursor: pointer;
-    }
-
-    .tabs-bar {
-      display: flex;
-      background: #c0c0c0;
-      padding: 6px 6px 0 6px;
-      overflow-x: auto;
-      gap: 4px;
-      border-bottom: 2px solid #ffffff;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .tab-button {
-      padding: 8px 14px;
-      font-size: 12px;
-      font-weight: bold;
-      background: #c0c0c0;
+      color: #000;
       border-top: 2px solid #fff;
       border-left: 2px solid #fff;
       border-right: 2px solid #000;
-      border-bottom: none;
+      border-bottom: 2px solid #000;
+      font-weight: bold;
+      padding: 4px 10px;
+      font-size: 12px;
       cursor: pointer;
-      white-space: nowrap;
-      min-height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .menu-trigger-btn:active {
+      border-top: 2px solid #000;
+      border-left: 2px solid #000;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
     }
 
-    .tab-button.active {
-      background: #e0e0e0;
-      border-bottom: 2px solid #e0e0e0;
-      margin-bottom: -2px;
-      padding-top: 10px;
-    }
-
-    .window-body {
+    .lock-btn {
       background: #c0c0c0;
-      padding: 10px;
+      color: #000;
+      border-top: 2px solid #fff;
+      border-left: 2px solid #fff;
+      border-right: 2px solid #000;
+      border-bottom: 2px solid #000;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Body Layout with Sidebar Drawer */
+    .app-main {
       flex: 1;
-      overflow-y: auto;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+      background: #c0c0c0;
     }
 
-    .tab-pane {
+    /* Sidebar Drawer */
+    .sidebar-drawer {
+      width: 250px;
+      background: #c0c0c0;
+      border-right: 2px solid #ffffff;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 100;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    /* On Mobile, sidebar is an overlay drawer */
+    @media (max-width: 768px) {
+      .sidebar-drawer {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+        box-shadow: 4px 0 16px rgba(0,0,0,0.5);
+      }
+      .sidebar-drawer.open {
+        transform: translateX(0);
+      }
+    }
+
+    .sidebar-overlay {
       display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 90;
     }
-
-    .tab-pane.active {
+    .sidebar-overlay.open {
       display: block;
     }
 
+    .sidebar-header {
+      background: #000080;
+      color: #ffffff;
+      padding: 10px 8px;
+      font-weight: bold;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sidebar-profile {
+      padding: 10px 8px;
+      background: #e0e0e0;
+      border-bottom: 2px solid #808080;
+      font-size: 11px;
+    }
+    .sidebar-profile-title {
+      font-weight: bold;
+      color: #000080;
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
+    .sidebar-menu {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      background: #c0c0c0;
+      color: #000000;
+      border: 2px solid transparent;
+      cursor: pointer;
+      text-decoration: none;
+      user-select: none;
+    }
+    .nav-item:active, .nav-item.active {
+      background: #000080;
+      color: #ffffff;
+      border-top: 2px solid #000;
+      border-left: 2px solid #000;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+    }
+    .nav-badge {
+      margin-left: auto;
+      background: #008080;
+      color: #fff;
+      font-size: 10px;
+      padding: 2px 6px;
+      font-weight: normal;
+    }
+    .nav-item.active .nav-badge {
+      background: #ffffff;
+      color: #000080;
+      font-weight: bold;
+    }
+
+    /* Content Area */
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      background: #c0c0c0;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .page-pane {
+      display: none;
+    }
+    .page-pane.active {
+      display: block;
+    }
+
+    /* Groupbox Windows 95 */
     .groupbox {
       border: 2px groove #ffffff;
-      padding: 12px;
-      margin-bottom: 12px;
+      padding: 12px 10px 10px 10px;
+      margin-bottom: 14px;
       background: #c0c0c0;
+      position: relative;
     }
 
     .groupbox-legend {
@@ -150,50 +268,69 @@
       background: #c0c0c0;
       font-size: 12px;
       color: #000080;
+      display: inline-block;
+      margin-bottom: 8px;
     }
 
+    /* Controls & Form Elements */
     .form-group {
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
     label {
       display: block;
-      font-weight: bold;
       margin-bottom: 4px;
+      font-weight: bold;
       font-size: 12px;
+      color: #111;
     }
 
-    input[type="text"], input[type="password"], select, textarea {
+    input[type="text"],
+    input[type="number"],
+    input[type="password"],
+    select,
+    textarea {
       width: 100%;
-      padding: 8px;
-      font-family: inherit;
+      padding: 8px 10px;
+      font-family: 'MS Sans Serif', Tahoma, 'Segoe UI', monospace;
       font-size: 13px;
-      border-top: 2px solid #000;
-      border-left: 2px solid #000;
-      border-right: 2px solid #fff;
-      border-bottom: 2px solid #fff;
-      background: #fff;
+      border-top: 2px solid #000000;
+      border-left: 2px solid #000000;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      background: #ffffff;
+      color: #000000;
       outline: none;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: 1px dotted #000080;
+      background: #fffff0;
     }
 
     textarea {
       resize: vertical;
-      min-height: 90px;
+      line-height: 1.4;
     }
 
+    /* Buttons */
     .btn {
-      padding: 8px 16px;
-      font-family: inherit;
+      padding: 9px 16px;
       font-size: 12px;
       font-weight: bold;
       background: #c0c0c0;
+      color: #000000;
       border-top: 2px solid #ffffff;
       border-left: 2px solid #ffffff;
       border-right: 2px solid #000000;
       border-bottom: 2px solid #000000;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      user-select: none;
       min-height: 38px;
-      touch-action: manipulation;
     }
 
     .btn:active {
@@ -201,20 +338,11 @@
       border-left: 2px solid #000000;
       border-right: 2px solid #ffffff;
       border-bottom: 2px solid #ffffff;
-      background: #b0b0b0;
+      padding: 10px 15px 8px 17px;
     }
 
     .btn-primary {
       background: #000080;
-      color: #ffffff;
-      border-top: 2px solid #1084d0;
-      border-left: 2px solid #1084d0;
-      border-right: 2px solid #000040;
-      border-bottom: 2px solid #000040;
-    }
-
-    .btn-success {
-      background: #006000;
       color: #ffffff;
     }
 
@@ -223,467 +351,918 @@
       color: #ffffff;
     }
 
-    .product-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 480px;
-      overflow-y: auto;
-      padding: 4px;
-      background: #fff;
-      border-top: 2px solid #000;
-      border-left: 2px solid #000;
-      border-right: 2px solid #fff;
-      border-bottom: 2px solid #fff;
-    }
-
-    .product-card {
-      border: 1px solid #a0a0a0;
-      background: #f4f4f4;
-      padding: 8px 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .product-info h4 {
-      font-size: 13px;
-      color: #000080;
-    }
-
-    .product-info span {
+    .btn-sm {
+      padding: 4px 8px;
       font-size: 11px;
-      color: #555;
+      min-height: 28px;
     }
 
-    .wa-preview {
-      background: #e5ddd5;
-      padding: 12px;
-      border-top: 2px solid #000;
-      border-left: 2px solid #000;
-      border-right: 2px solid #fff;
-      border-bottom: 2px solid #fff;
-      font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
-      font-size: 13px;
-      white-space: pre-wrap;
-      word-break: break-word;
-      color: #111;
-      line-height: 1.4;
-      max-height: 320px;
-      overflow-y: auto;
+    .btn-block {
+      width: 100%;
     }
 
-    #notif {
-      display: none;
-      padding: 10px;
-      background: #ffffcc;
-      border: 2px solid #999900;
-      font-weight: bold;
-      margin-bottom: 10px;
-      font-size: 12px;
-    }
-
+    /* Bottom Taskbar */
     .taskbar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 36px;
+      height: 38px;
       background: #c0c0c0;
       border-top: 2px solid #ffffff;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 2px 4px;
-      z-index: 9999;
+      padding: 2px 6px;
+      flex-shrink: 0;
+      user-select: none;
     }
 
-    .start-button {
-      height: 28px;
-      padding: 2px 8px;
-      font-weight: bold;
-      font-size: 12px;
+    .start-btn {
       display: flex;
       align-items: center;
-      gap: 4px;
-      background: #c0c0c0;
+      gap: 5px;
+      font-weight: bold;
+      font-size: 12px;
+      height: 30px;
+      padding: 2px 8px;
       border-top: 2px solid #ffffff;
       border-left: 2px solid #ffffff;
       border-right: 2px solid #000000;
       border-bottom: 2px solid #000000;
+      background: #c0c0c0;
       cursor: pointer;
     }
+    .start-btn:active {
+      border-top: 2px solid #000000;
+      border-left: 2px solid #000000;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+    }
 
-    .tray {
+    .system-tray {
       display: flex;
       align-items: center;
       gap: 8px;
-      border-top: 1px solid #808080;
-      border-left: 1px solid #808080;
-      border-right: 1px solid #ffffff;
-      border-bottom: 1px solid #ffffff;
-      padding: 2px 6px;
+      border-top: 2px solid #808080;
+      border-left: 2px solid #808080;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      padding: 2px 8px;
+      height: 26px;
       font-size: 11px;
+      font-weight: bold;
     }
 
+    /* Badges */
     .badge-online {
       color: #008000;
       font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
-
     .badge-offline {
       color: #800000;
       font-weight: bold;
+    }
+
+    /* Product Cards & List */
+    .filter-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: bold;
+      background: #c0c0c0;
+      border-top: 2px solid #fff;
+      border-left: 2px solid #fff;
+      border-right: 2px solid #000;
+      border-bottom: 2px solid #000;
+      cursor: pointer;
+    }
+    .filter-btn.active {
+      background: #000080;
+      color: #ffffff;
+      border-top: 2px solid #000;
+      border-left: 2px solid #000;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+    }
+
+    .product-list-container {
+      max-height: 480px;
+      overflow-y: auto;
+      border-top: 2px solid #000;
+      border-left: 2px solid #000;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      background: #ffffff;
+      padding: 4px;
+    }
+
+    .prod-card {
+      border: 1px solid #c0c0c0;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      background: #f7f7f7;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .prod-card:hover {
+      background: #eef3ff;
+      border-color: #000080;
+    }
+    .prod-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .prod-card-title {
+      font-weight: bold;
+      font-size: 12px;
+      color: #000080;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .prod-card-meta {
+      font-size: 11px;
+      color: #444;
+      margin-top: 2px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .prod-card-price {
+      font-weight: bold;
+      color: #008000;
+    }
+    .prod-card-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    /* WhatsApp Bubble Preview */
+    .wa-preview-box {
+      background: #efeae2;
+      border-top: 2px solid #000;
+      border-left: 2px solid #000;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      padding: 12px 10px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #111b21;
+      max-height: 280px;
+      overflow-y: auto;
+      margin-top: 8px;
+    }
+    .wa-bubble {
+      background: #ffffff;
+      border-radius: 8px !important;
+      padding: 8px 10px;
+      box-shadow: 0 1px 0.5px rgba(11,20,26,.13);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 12px;
+    }
+
+    /* Security Code Dialog (Modal) */
+    .auth-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 128, 128, 0.95);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .auth-window {
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 4px 4px 16px rgba(0,0,0,0.6);
+    }
+
+    /* Edit Product Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+    .modal-window {
+      width: 100%;
+      max-width: 580px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 3px 3px 14px rgba(0,0,0,0.7);
+    }
+    .modal-body {
+      background: #c0c0c0;
+      padding: 12px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* Notification Banner */
+    .notif-banner {
+      display: none;
+      background: #ffffcc;
+      border: 1px solid #999900;
+      padding: 8px 10px;
+      font-size: 11px;
+      font-weight: bold;
+      color: #333300;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
 
-  <div class="app-window win-outset">
-    <!-- Title Bar -->
+  <!-- ========================================== -->
+  <!-- 1. DIALOG KODE AKSES (SECURITY AUTH MODAL) -->
+  <!-- ========================================== -->
+  <div id="auth-modal" class="auth-overlay">
+    <div class="auth-window win-outset">
+      <div class="title-bar">
+        <div class="title-left">
+          <span>🔒</span>
+          <span>Autentikasi Reimal Store</span>
+        </div>
+      </div>
+      <div style="padding: 16px; background: #c0c0c0;">
+        <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px;">
+          <div style="font-size: 32px;">🔑</div>
+          <div>
+            <div style="font-weight: bold; font-size: 13px; color: #000080;">KODE AKSES ADMIN</div>
+            <div style="font-size: 11px; color: #333; margin-top: 3px;">
+              Panel ini diproteksi. Masukkan kode akses admin untuk mengelola katalog & bot:
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Kode Akses (PIN/Password):</label>
+          <input type="password" id="auth-input-code" placeholder="Ketik kode akses..." autocomplete="current-password" autofocus>
+        </div>
+
+        <div style="margin-bottom: 14px; font-size: 11px;">
+          <label style="font-weight: normal; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <input type="checkbox" id="auth-remember-me" checked>
+            <span>Ingat di perangkat ini</span>
+          </label>
+        </div>
+
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button type="button" class="btn btn-primary" onclick="handleLogin()" style="width: 100%;">
+            <span>🔓 Buka Panel Kendali</span>
+          </button>
+        </div>
+
+        <div id="auth-error-msg" style="display:none; color: #800000; font-weight: bold; font-size: 11px; margin-top: 10px; text-align: center;">
+          ❌ Kode akses salah! Silakan coba lagi.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 2. MAIN APP WINDOW -->
+  <!-- ========================================== -->
+  <div class="app-wrapper win-outset">
+    
+    <!-- Top Title Bar -->
     <div class="title-bar">
-      <div class="title-bar-text">
-        <span>💾</span>
-        <span>Reimal Store Control Panel 95 (Vercel + Supabase)</span>
+      <div class="title-left">
+        <button class="menu-trigger-btn" onclick="toggleSidebar()">
+          <span>☰</span>
+          <span>Menu</span>
+        </button>
+        <span>Reimal Store Control Panel 95</span>
       </div>
-      <div class="title-bar-controls">
-        <button class="title-btn" onclick="location.reload()">_</button>
-        <button class="title-btn" onclick="location.reload()">X</button>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span id="header-sync-status" class="badge-online" style="font-size: 11px;">🟢 Online</span>
+        <button class="lock-btn" onclick="handleLockPanel()" title="Kunci Dashboard">
+          <span>🔒 Kunci</span>
+        </button>
       </div>
     </div>
 
-    <!-- Navigation Tabs -->
-    <div class="tabs-bar">
-      <button class="tab-button active" onclick="switchTab('tab-products')">📁 Produk & Harga</button>
-      <button class="tab-button" onclick="switchTab('tab-templates')">🎨 Tampilan List</button>
-      <button class="tab-button" onclick="switchTab('tab-autoreply')">💬 Auto-Reply PC</button>
-      <button class="tab-button" onclick="switchTab('tab-supabase')">⚡ Setup Supabase</button>
+    <!-- Main Container (Sidebar + Content) -->
+    <div class="app-main">
+      
+      <!-- Backdrop for mobile drawer -->
+      <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+      <!-- SIDEBAR DRAWER -->
+      <div id="sidebar-drawer" class="sidebar-drawer">
+        <div class="sidebar-header">
+          <span>📁 NAVIGASI SISTEM</span>
+          <button class="btn btn-sm" onclick="closeSidebar()" style="padding: 1px 6px;">✕</button>
+        </div>
+
+        <div class="sidebar-profile">
+          <div class="sidebar-profile-title">REIMAL STORE BOT</div>
+          <div>Mode: <strong style="color: #008000;">Cloud Active</strong></div>
+          <div style="font-size: 10px; color: #666; margin-top: 2px;">Domain: erp.chainasiaconnect</div>
+        </div>
+
+        <div class="sidebar-menu">
+          <button class="nav-item active" onclick="switchPage('page-products', this)">
+            <span>📦</span>
+            <span>Kelola Produk</span>
+            <span class="nav-badge" id="badge-total-prod">56</span>
+          </button>
+
+          <button class="nav-item" onclick="switchPage('page-list-mode', this)">
+            <span>🎨</span>
+            <span>Tampilan List WA</span>
+          </button>
+
+          <button class="nav-item" onclick="switchPage('page-detail-mode', this)">
+            <span>📋</span>
+            <span>Tampilan Detail WA</span>
+          </button>
+
+          <button class="nav-item" onclick="switchPage('page-private-chat', this)">
+            <span>💬</span>
+            <span>Auto-Reply PC</span>
+          </button>
+
+          <button class="nav-item" onclick="switchPage('page-groups', this)">
+            <span>👥</span>
+            <span>Grup WhatsApp</span>
+          </button>
+
+          <button class="nav-item" onclick="switchPage('page-security', this)">
+            <span>⚙️</span>
+            <span>Kode Akses & Cloud</span>
+          </button>
+        </div>
+
+        <div style="padding: 8px; border-top: 2px solid #808080; background: #c0c0c0;">
+          <button class="btn btn-block" onclick="manualSyncFromSupabase()">
+            <span>🔄</span>
+            <span>Sinkron Sekarang</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- CONTENT AREA -->
+      <div class="content-area">
+        
+        <div id="notif-banner" class="notif-banner"></div>
+
+        <!-- ========================================== -->
+        <!-- TAB 1: KELOLA PRODUK & HARGA (PER-PRODUK) -->
+        <!-- ========================================== -->
+        <div id="page-products" class="page-pane active">
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+            <div style="font-weight: bold; font-size: 14px; color: #000080;">📦 DAFTAR PRODUK & HARGA</div>
+            <button class="btn btn-primary" onclick="openAddProductModal()">
+              <span>➕ Tambah Produk</span>
+            </button>
+          </div>
+
+          <div class="groupbox">
+            <span class="groupbox-legend">Pencarian & Filter Cepat</span>
+            <div style="margin-bottom: 8px;">
+              <input type="text" id="prod-search-input" placeholder="🔍 Cari nama produk (netflix, spotify, ig, viu...)" oninput="filterProducts()">
+            </div>
+            <div class="filter-bar">
+              <button class="filter-btn active" onclick="setCategoryFilter('all', this)">Semua Produk (<span id="count-all">0</span>)</button>
+              <button class="filter-btn" onclick="setCategoryFilter('streaming_apps', this)">🎬 Streaming Apps (<span id="count-streaming">0</span>)</button>
+              <button class="filter-btn" onclick="setCategoryFilter('smm', this)">📈 SMM & Sosmed (<span id="count-smm">0</span>)</button>
+            </div>
+          </div>
+
+          <!-- Product Card List -->
+          <div id="product-list" class="product-list-container">
+            <div style="text-align: center; padding: 20px; color: #666;">
+              ⏳ Memuat daftar produk dari Supabase...
+            </div>
+          </div>
+
+          <div style="font-size: 11px; color: #555; margin-top: 6px;">
+            💡 <em>Klik "Edit" pada produk mana saja untuk mengubah nama, harga, atau varian. Perubahan otomatis disinkronkan ke bot WhatsApp.</em>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: TAMPILAN MODE LIST WA -->
+        <!-- ========================================== -->
+        <div id="page-list-mode" class="page-pane">
+          <div style="font-weight: bold; font-size: 14px; color: #000080; margin-bottom: 8px;">🎨 PENGATURAN TAMPILAN MODE LIST</div>
+          
+          <div class="groupbox">
+            <span class="groupbox-legend">Teks Header & Footer Mode List</span>
+            
+            <div class="form-group">
+              <label>Header (Bagian Pembuka Atas):</label>
+              <textarea id="tpl-list-header" rows="3" placeholder="🛒 *KATALOG REIMAL STORE*..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Footer (Bagian Penutup Bawah):</label>
+              <textarea id="tpl-list-footer" rows="3" placeholder="💡 *Petunjuk Cepat:*..."></textarea>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveTemplatesToSupabase()">
+              <span>💾 Simpan Tampilan List</span>
+            </button>
+          </div>
+
+          <div class="groupbox">
+            <span class="groupbox-legend">Simulasi Tampilan WhatsApp (Mode List)</span>
+            <div class="wa-preview-box">
+              <div id="preview-list-box" class="wa-bubble"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: TAMPILAN MODE DETAIL WA -->
+        <!-- ========================================== -->
+        <div id="page-detail-mode" class="page-pane">
+          <div style="font-weight: bold; font-size: 14px; color: #000080; margin-bottom: 8px;">📋 PENGATURAN TAMPILAN DETAIL LIST</div>
+          
+          <div class="groupbox">
+            <span class="groupbox-legend">Teks Header & Footer Detail List</span>
+            
+            <div class="form-group">
+              <label>Header Detail (Bagian Pembuka Atas):</label>
+              <textarea id="tpl-detail-header" rows="3" placeholder="📋 *PRICELIST LENGKAP REIMAL STORE*..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Footer Detail (Bagian Penutup Bawah):</label>
+              <textarea id="tpl-detail-footer" rows="3" placeholder="💡 *Pemesanan:* Ketik format order..."></textarea>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveTemplatesToSupabase()">
+              <span>💾 Simpan Tampilan Detail</span>
+            </button>
+          </div>
+
+          <div class="groupbox">
+            <span class="groupbox-legend">Simulasi Tampilan WhatsApp (Mode Detail)</span>
+            <div class="wa-preview-box">
+              <div id="preview-detail-box" class="wa-bubble"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: AUTO-REPLY CHAT PRIBADI (PC) -->
+        <!-- ========================================== -->
+        <div id="page-private-chat" class="page-pane">
+          <div style="font-weight: bold; font-size: 14px; color: #000080; margin-bottom: 8px;">💬 AUTO-REPLY CHAT PRIBADI (PC)</div>
+
+          <div class="groupbox">
+            <span class="groupbox-legend">Pengaturan Pesan Otomatis PC</span>
+            <div style="font-size: 11px; color: #333; margin-bottom: 10px;">
+              Saat seseorang chat pribadi ke bot, bot akan mengecek apakah dia anggota grup Anda, lalu menyapa dengan namanya dan memberikan nomor admin.
+            </div>
+
+            <div class="form-group">
+              <label>Nomor WhatsApp Admin (Format 628xxx):</label>
+              <input type="text" id="cfg-admin-contact" placeholder="6289531946313">
+            </div>
+
+            <div class="form-group">
+              <label>Pesan Penjelasan / Arahkan ke Admin:</label>
+              <textarea id="cfg-explanation" rows="3" placeholder="Maaf, silakan chat admin di nomor berikut. Saya hanya bot pendamping grup."></textarea>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveConfigToSupabase()">
+              <span>💾 Simpan Pengaturan PC</span>
+            </button>
+          </div>
+
+          <div class="groupbox">
+            <span class="groupbox-legend">Simulasi Balasan Chat Pribadi di WhatsApp</span>
+            <div class="wa-preview-box">
+              <div id="preview-pc-box" class="wa-bubble"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 5: GRUP WHATSAPP TERDAFTAR -->
+        <!-- ========================================== -->
+        <div id="page-groups" class="page-pane">
+          <div style="font-weight: bold; font-size: 14px; color: #000080; margin-bottom: 8px;">👥 DAFTAR GRUP WHATSAPP TERDAFTAR</div>
+          
+          <div class="groupbox">
+            <span class="groupbox-legend">Grup yang Diizinkan Menggunakan Bot</span>
+            <div id="groups-list-container" style="background:#fff; border: 2px inset #fff; padding: 6px; min-height: 120px;">
+              <div style="text-align: center; color: #666; padding: 15px;">
+                Memuat grup...
+              </div>
+            </div>
+            <div style="font-size: 11px; color: #555; margin-top: 8px;">
+              💡 <em>Untuk mendaftarkan grup baru, ketik <strong>daftarkan grup</strong> langsung di grup WhatsApp yang bersangkutan.</em>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 6: KEAMANAN & KONEKSI SUPABASE -->
+        <!-- ========================================== -->
+        <div id="page-security" class="page-pane">
+          <div style="font-weight: bold; font-size: 14px; color: #000080; margin-bottom: 8px;">⚙️ KEAMANAN KODE AKSES & CLOUD</div>
+
+          <div class="groupbox">
+            <span class="groupbox-legend">🔐 Ubah Kode Akses Dashboard (PIN)</span>
+            <div style="font-size: 11px; color: #333; margin-bottom: 10px;">
+              Ganti kode akses admin untuk mencegah orang lain membuka halaman ini:
+            </div>
+
+            <div class="form-group">
+              <label>Kode Akses Baru:</label>
+              <input type="text" id="sec-new-code" placeholder="Ketik kode baru...">
+            </div>
+
+            <button class="btn btn-primary" onclick="saveNewAccessCode()">
+              <span>💾 Perbarui Kode Akses</span>
+            </button>
+          </div>
+
+          <div class="groupbox">
+            <span class="groupbox-legend">☁️ Status Proyek Supabase</span>
+            <div style="font-size: 11px; margin-bottom: 8px;">
+              <div>Status: <span id="sb-status-badge" class="badge-online">⚡ Terhubung</span></div>
+              <div style="margin-top: 4px;">Project URL: <code id="sec-sb-url">https://scsetyfsgycomcipfxkc.supabase.co</code></div>
+            </div>
+            <button class="btn" onclick="testSupabaseConnection()">
+              <span>🔌 Tes Ulang Koneksi</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
     </div>
 
-    <!-- Window Body -->
-    <div class="window-body">
-      <div id="notif"></div>
-
-      <!-- TAB 1: PRODUK & HARGA -->
-      <div id="tab-products" class="tab-pane active">
-        <div class="groupbox">
-          <span class="groupbox-legend">Pencarian & Kelola Produk (Sinkron Supabase)</span>
-          <div style="display: flex; gap: 6px; margin-bottom: 10px;">
-            <input type="text" id="prod-search" placeholder="Cari produk (netflix, canva, ig...)" oninput="filterProducts()">
-            <button class="btn btn-primary" onclick="openProductModal()">+ Tambah</button>
-          </div>
-          <div class="product-list" id="product-container">
-            <div style="padding: 10px;">Memuat data dari Supabase...</div>
-          </div>
-        </div>
-
-        <!-- Edit Form Popup / Modal -->
-        <div id="edit-box" class="groupbox" style="display: none;">
-          <span class="groupbox-legend" id="edit-box-title">Edit Produk</span>
-          <input type="hidden" id="edit-id">
-          
-          <div class="form-group">
-            <label>Nama Produk:</label>
-            <input type="text" id="edit-title">
-          </div>
-
-          <div class="form-group">
-            <label>Kategori:</label>
-            <select id="edit-category">
-              <option value="streaming_entertainment">🎬 STREAMING & HIBURAN</option>
-              <option value="photo_video_editing">🎨 EDITING FOTO & VIDEO</option>
-              <option value="study_productivity_tools">📚 BELAJAR & PRODUKTIVITAS</option>
-              <option value="smm_services">🚀 SMM & SOSIAL MEDIA</option>
-              <option value="general_products">📦 PRODUK LAINNYA</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Rincian Paket & Harga (Bisa Edit Bebas):</label>
-            <textarea id="edit-content" rows="6"></textarea>
-          </div>
-
-          <div style="display: flex; gap: 6px;">
-            <button class="btn btn-primary" onclick="saveProductToSupabase()">💾 Simpan ke Supabase</button>
-            <button class="btn" onclick="closeProductModal()">Batal</button>
-          </div>
-        </div>
+    <!-- Bottom Taskbar -->
+    <div class="taskbar">
+      <button class="start-btn" onclick="toggleSidebar()">
+        <span>🪟</span>
+        <span>Start</span>
+      </button>
+      <div class="system-tray">
+        <span id="tray-db-indicator">☁️ Cloud</span>
+        <span id="clock">12:00</span>
       </div>
+    </div>
 
-      <!-- TAB 2: TAMPILAN LIST & DETAIL -->
-      <div id="tab-templates" class="tab-pane">
-        <div class="groupbox">
-          <span class="groupbox-legend">1. Setup Tampilan Mode List (Ringkas)</span>
-          <div class="form-group">
-            <label>Header / Judul Atas (Mode List):</label>
-            <textarea id="tpl-list-header" rows="3"></textarea>
-          </div>
-          <div class="form-group">
-            <label>Footer / Catatan Bawah (Mode List):</label>
-            <textarea id="tpl-list-footer" rows="3"></textarea>
-          </div>
-          <button class="btn btn-primary" onclick="saveTemplatesToSupabase()">💾 Simpan ke Supabase</button>
-        </div>
+  </div>
 
-        <div class="groupbox">
-          <span class="groupbox-legend">2. Setup Tampilan Mode Detail List (Lengkap)</span>
-          <div class="form-group">
-            <label>Header / Judul Atas (Detail List):</label>
-            <textarea id="tpl-detail-header" rows="3"></textarea>
-          </div>
-          <div class="form-group">
-            <label>Footer / Catatan Bawah (Detail List):</label>
-            <textarea id="tpl-detail-footer" rows="3"></textarea>
-          </div>
-          <button class="btn btn-primary" onclick="saveTemplatesToSupabase()">💾 Simpan ke Supabase</button>
+  <!-- ========================================== -->
+  <!-- 3. MODAL EDIT & TAMBAH PRODUK -->
+  <!-- ========================================== -->
+  <div id="product-modal" class="modal-overlay">
+    <div class="modal-window win-outset">
+      <div class="title-bar">
+        <div class="title-left">
+          <span id="modal-title-text">✏️ Edit Produk</span>
         </div>
+        <button class="title-btn" onclick="closeProductModal()">✕</button>
       </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-id">
 
-      <!-- TAB 3: AUTO-REPLY CHAT PRIBADI -->
-      <div id="tab-autoreply" class="tab-pane">
-        <div class="groupbox">
-          <span class="groupbox-legend">Pengaturan Balasan Chat Pribadi (PC)</span>
-          
-          <div class="form-group">
-            <label>Nomor WhatsApp Admin (Format 628xxx):</label>
-            <input type="text" id="cfg-admin-contact" placeholder="628123456789">
+        <div class="form-group">
+          <label>Nama Produk (Contoh: NETFLIX PREMIUM):</label>
+          <input type="text" id="edit-title" placeholder="Nama Produk">
+        </div>
+
+        <div class="form-group">
+          <label>Kategori Produk:</label>
+          <select id="edit-category">
+            <option value="streaming_apps">🎬 Streaming Apps</option>
+            <option value="smm">📈 SMM & Social Media Services</option>
+            <option value="general_products">📦 Produk Umum Lainnya</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Harga Termurah (Rp):</label>
+          <input type="number" id="edit-min-price" placeholder="Contoh: 18000">
+        </div>
+
+        <div class="form-group">
+          <label>Isi Pricelist / Rincian Varian:</label>
+          <!-- Quick insert helpers -->
+          <div style="display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-sm" onclick="insertHelperText('» 1 Bulan : Rp ')">+ 1 Bulan</button>
+            <button type="button" class="btn btn-sm" onclick="insertHelperText('» Private 1 Profil : Rp ')">+ Profil</button>
+            <button type="button" class="btn btn-sm" onclick="insertHelperText('» Full Garansi Aktif\n')">+ Garansi</button>
+            <button type="button" class="btn btn-sm" onclick="insertHelperText('» Min Order: 100 | Max: 10.000\n')">+ SMM Min</button>
           </div>
-
-          <div class="form-group">
-            <label>Pesan Penjelasan Auto-Reply (Bebas Edit):</label>
-            <textarea id="cfg-explanation" rows="4"></textarea>
-          </div>
-
-          <button class="btn btn-primary" onclick="saveConfigToSupabase()">💾 Simpan ke Supabase</button>
+          <textarea id="edit-content" rows="6" placeholder="» 1 Bulan : Rp 35.000..."></textarea>
         </div>
 
         <div class="groupbox">
-          <span class="groupbox-legend">📱 Live Preview Balasan di WhatsApp:</span>
-          <div class="wa-preview" id="wa-preview-box">
-            <!-- Rendered by JS -->
+          <span class="groupbox-legend">Simulasi Chat Bot WA untuk Produk Ini</span>
+          <div class="wa-preview-box" style="max-height: 140px;">
+            <div id="modal-wa-preview" class="wa-bubble"></div>
           </div>
         </div>
-      </div>
 
-      <!-- TAB 4: SETUP SUPABASE (KONEKSI CLOUD) -->
-      <div id="tab-supabase" class="tab-pane">
-        <div class="groupbox">
-          <span class="groupbox-legend">Koneksi Database Supabase Cloud</span>
-          <p style="margin-bottom: 10px; font-size: 11px; line-height: 1.4;">
-            Masukkan Project URL dan Anon Key dari dashboard Supabase Anda. Kunci ini disimpan aman di browser HP Anda.
-          </p>
-
-          <div class="form-group">
-            <label>Supabase Project URL:</label>
-            <input type="text" id="sb-url" placeholder="https://your-project.supabase.co">
-          </div>
-
-          <div class="form-group">
-            <label>Supabase Anon Key (Public Key):</label>
-            <input type="password" id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-          </div>
-
-          <div style="display: flex; gap: 6px;">
-            <button class="btn btn-primary" onclick="saveSupabaseSettings()">🔌 Sambungkan Supabase</button>
-            <button class="btn" onclick="testSupabaseConnection()">⚡ Tes Koneksi</button>
-          </div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px;">
+          <button type="button" class="btn" onclick="closeProductModal()">Batal</button>
+          <button type="button" class="btn btn-primary" onclick="saveProductToSupabase()">
+            <span>💾 Simpan ke Database</span>
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Windows 95 Taskbar -->
-  <div class="taskbar">
-    <div class="start-button" onclick="alert('Reimal Store Control Panel 95 (Vercel Edition)\nDatabase: Supabase Cloud')">
-      <span>🪟</span>
-      <span>Start</span>
-    </div>
-    <div class="tray">
-      <span id="sb-status-badge">⚡ Memeriksa Database...</span>
-      <span id="clock">12:00</span>
-    </div>
-  </div>
-
+  <!-- ========================================== -->
+  <!-- 4. JAVASCRIPT LOGIC -->
+  <!-- ========================================== -->
   <script>
+    // Supabase Configuration
+    const SB_URL = 'https://scsetyfsgycomcipfxkc.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjc2V0eWZzZ3ljb21jaXBmeGtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1MTgxODksImV4cCI6MjEwOTA5NDE4OX0.e4yzBYv7aPOIhUcgoZBtV9B5Ybs72B9ng2D4Pd8Dnjk';
+    const MASTER_KEY = 'Dani22334455@!';
+
     let supabase = null;
     let allProducts = [];
+    let currentCategoryFilter = 'all';
+    let currentAccessCode = 'reimal95';
 
-    function showNotif(msg) {
-      const n = document.getElementById('notif');
-      n.innerText = msg;
-      n.style.display = 'block';
-      setTimeout(() => { n.style.display = 'none'; }, 4000);
-    }
-
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      event.target.classList.add('active');
-    }
-
-    // 1. Supabase Initialization
-    const DEFAULT_SB_URL = 'https://scsetyfsgycomcipfxkc.supabase.co';
-    const DEFAULT_SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjc2V0eWZzZ3ljb21jaXBmeGtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1MTgxODksImV4cCI6MjEwOTA5NDE4OX0.e4yzBYv7aPOIhUcgoZBtV9B5Ybs72B9ng2D4Pd8Dnjk';
-
-    function initSupabase() {
-      const url = localStorage.getItem('reimal_sb_url') || DEFAULT_SB_URL;
-      const key = localStorage.getItem('reimal_sb_key') || DEFAULT_SB_KEY;
-
-      document.getElementById('sb-url').value = url;
-      document.getElementById('sb-key').value = key;
-
-      if (url && key && window.supabase) {
-        try {
-          supabase = window.supabase.createClient(url, key);
-          document.getElementById('sb-status-badge').innerHTML = '<span class="badge-online">⚡ Supabase Terhubung</span>';
-          loadAllDataFromSupabase();
-        } catch (e) {
-          document.getElementById('sb-status-badge').innerHTML = '<span class="badge-offline">❌ Gagal Terhubung</span>';
-        }
-      } else {
-        document.getElementById('sb-status-badge').innerHTML = '<span class="badge-offline">⚠️ Belum Disetup</span>';
-        switchTab('tab-supabase');
+    // 1. Initial Auth Check
+    function checkAuthOnLoad() {
+      const savedCode = localStorage.getItem('reimal_admin_pin');
+      if (savedCode) {
+        verifyCode(savedCode, true);
       }
     }
 
-    function saveSupabaseSettings() {
-      const url = document.getElementById('sb-url').value.trim();
-      const key = document.getElementById('sb-key').value.trim();
-
-      if (!url || !key) return alert('URL dan Anon Key wajib diisi!');
-
-      localStorage.setItem('reimal_sb_url', url);
-      localStorage.setItem('reimal_sb_key', key);
-      showNotif('✅ Kunci Supabase disimpan di HP!');
-      initSupabase();
+    async function handleLogin() {
+      const input = document.getElementById('auth-input-code').value.trim();
+      if (!input) return;
+      verifyCode(input, false);
     }
 
-    async function testSupabaseConnection() {
-      if (!supabase) return alert('Silakan isi URL dan Key lalu klik Sambungkan!');
+    async function verifyCode(input, isAuto = false) {
+      const errBox = document.getElementById('auth-error-msg');
+      errBox.style.display = 'none';
+
+      // Always allow master key
+      if (input === MASTER_KEY) {
+        unlockPanel(input);
+        return;
+      }
+
+      // Check against current code or fetch latest code from Supabase
       try {
-        const { data, error } = await supabase.from('products').select('count');
-        if (error) throw error;
-        alert('🎉 Koneksi Berhasil! Database Supabase siap digunakan.');
-      } catch (err) {
-        alert('Gagal koneksi: ' + err.message);
+        if (!supabase) {
+          supabase = window.supabase.createClient(SB_URL, SB_KEY);
+        }
+        const { data: cfg } = await supabase.from('bot_config').select('access_code').eq('id', 'main_config').single();
+        if (cfg && cfg.access_code) {
+          currentAccessCode = cfg.access_code;
+        }
+      } catch (e) {
+        console.warn('Could not verify against cloud, using cache');
+      }
+
+      if (input === currentAccessCode || input === 'reimal95') {
+        unlockPanel(input);
+      } else {
+        if (!isAuto) {
+          errBox.style.display = 'block';
+        }
       }
     }
 
-    // 2. Load Data from Supabase
-    async function loadAllDataFromSupabase() {
-      if (!supabase) return;
+    function unlockPanel(code) {
+      const remember = document.getElementById('auth-remember-me').checked;
+      if (remember) {
+        localStorage.setItem('reimal_admin_pin', code);
+      }
+      document.getElementById('auth-modal').style.display = 'none';
+      initApp();
+    }
 
-      // A. Load Products
+    function handleLockPanel() {
+      localStorage.removeItem('reimal_admin_pin');
+      document.getElementById('auth-modal').style.display = 'flex';
+      document.getElementById('auth-input-code').value = '';
+      closeSidebar();
+    }
+
+    // 2. Initialize App & Data
+    async function initApp() {
+      if (!supabase) {
+        supabase = window.supabase.createClient(SB_URL, SB_KEY);
+      }
+      loadAllData();
+    }
+
+    // Sidebar Toggle
+    function toggleSidebar() {
+      const drawer = document.getElementById('sidebar-drawer');
+      const overlay = document.getElementById('sidebar-overlay');
+      drawer.classList.toggle('open');
+      overlay.classList.toggle('open');
+    }
+
+    function closeSidebar() {
+      document.getElementById('sidebar-drawer').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('open');
+    }
+
+    function switchPage(pageId, btnElement) {
+      document.querySelectorAll('.page-pane').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+      document.getElementById(pageId).classList.add('active');
+      if (btnElement) btnElement.classList.add('active');
+
+      closeSidebar();
+      window.scrollTo(0, 0);
+    }
+
+    function showBanner(msg, duration = 3000) {
+      const b = document.getElementById('notif-banner');
+      b.innerText = msg;
+      b.style.display = 'block';
+      setTimeout(() => { b.style.display = 'none'; }, duration);
+    }
+
+    // 3. Load Data from Supabase
+    async function loadAllData() {
+      await Promise.all([
+        loadProducts(),
+        loadTemplates(),
+        loadConfig(),
+        loadGroups()
+      ]);
+    }
+
+    async function loadProducts() {
       try {
         const { data, error } = await supabase.from('products').select('*').order('normalized_title', { ascending: true });
         if (!error && data) {
           allProducts = data;
+          updateProductCounts();
           renderProducts(allProducts);
         }
       } catch (e) {
         console.error(e);
       }
-
-      // B. Load Templates
-      try {
-        const { data: tpls } = await supabase.from('templates').select('*');
-        if (tpls) {
-          tpls.forEach(t => {
-            if (t.id === 'list') {
-              document.getElementById('tpl-list-header').value = t.header || '';
-              document.getElementById('tpl-list-footer').value = t.footer || '';
-            }
-            if (t.id === 'detail') {
-              document.getElementById('tpl-detail-header').value = t.header || '';
-              document.getElementById('tpl-detail-footer').value = t.footer || '';
-            }
-          });
-        }
-      } catch (e) {
-        console.error(e);
-      }
-
-      // C. Load Config
-      try {
-        const { data: cfg } = await supabase.from('bot_config').select('*').eq('id', 'main_config').single();
-        if (cfg) {
-          document.getElementById('cfg-admin-contact').value = cfg.admin_contact || '';
-          document.getElementById('cfg-explanation').value = cfg.private_chat_explanation || '';
-          updateLivePreview();
-        }
-      } catch (e) {
-        console.error(e);
-      }
     }
 
-    function renderProducts(items) {
-      const container = document.getElementById('product-container');
-      if (!items.length) {
-        container.innerHTML = '<div style="padding: 10px; color: #777;">Belum ada produk di database. Klik tombol "+ Tambah" di atas.</div>';
-        return;
-      }
-      container.innerHTML = items.map(p => `
-        <div class="product-card">
-          <div class="product-info">
-            <h4>${p.normalized_title || p.title}</h4>
-            <span>Mulai: Rp ${(p.min_price || 0).toLocaleString('id-ID')} | ${p.category}</span>
-          </div>
-          <div class="product-actions">
-            <button class="btn" onclick="editProduct('${p.id}')">Edit</button>
-            <button class="btn btn-danger" onclick="deleteProductFromSupabase('${p.id}', '${p.normalized_title}')">Hapus</button>
-          </div>
-        </div>
-      `).join('');
+    function updateProductCounts() {
+      const total = allProducts.length;
+      const streaming = allProducts.filter(p => p.category === 'streaming_apps').length;
+      const smm = allProducts.filter(p => p.category === 'smm').length;
+
+      document.getElementById('badge-total-prod').innerText = total;
+      document.getElementById('count-all').innerText = total;
+      document.getElementById('count-streaming').innerText = streaming;
+      document.getElementById('count-smm').innerText = smm;
+    }
+
+    function setCategoryFilter(cat, btn) {
+      currentCategoryFilter = cat;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterProducts();
     }
 
     function filterProducts() {
-      const q = document.getElementById('prod-search').value.toLowerCase();
-      const filtered = allProducts.filter(p => 
-        (p.normalized_title || p.title).toLowerCase().includes(q)
-      );
-      renderProducts(filtered);
+      const search = (document.getElementById('prod-search-input').value || '').trim().toLowerCase();
+      let list = allProducts;
+
+      if (currentCategoryFilter !== 'all') {
+        list = list.filter(p => p.category === currentCategoryFilter);
+      }
+
+      if (search) {
+        list = list.filter(p => {
+          const t = (p.normalized_title || p.title || '').toLowerCase();
+          const c = (p.normalized_content || p.clean_content || '').toLowerCase();
+          const k = (p.keywords || []).join(' ').toLowerCase();
+          return t.includes(search) || c.includes(search) || k.includes(search);
+        });
+      }
+
+      renderProducts(list);
     }
 
-    function openProductModal(prod = null) {
-      document.getElementById('edit-box').style.display = 'block';
-      if (prod) {
-        document.getElementById('edit-box-title').innerText = 'Edit Produk: ' + prod.normalized_title;
-        document.getElementById('edit-id').value = prod.id;
-        document.getElementById('edit-title').value = prod.normalized_title;
-        document.getElementById('edit-category').value = prod.category || 'general_products';
-        document.getElementById('edit-content').value = prod.normalized_content || prod.clean_content || '';
-      } else {
-        document.getElementById('edit-box-title').innerText = 'Tambah Produk Baru';
-        document.getElementById('edit-id').value = 'custom_' + Date.now();
-        document.getElementById('edit-title').value = '';
-        document.getElementById('edit-category').value = 'general_products';
-        document.getElementById('edit-content').value = '» 1 Bulan : ';
+    function renderProducts(products) {
+      const container = document.getElementById('product-list');
+      if (products.length === 0) {
+        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Tidak ada produk yang cocok dengan pencarian/kategori.</div>';
+        return;
       }
-      document.getElementById('edit-box').scrollIntoView({ behavior: 'smooth' });
+
+      let html = '';
+      products.forEach(p => {
+        const price = p.min_price ? 'Rp ' + Number(p.min_price).toLocaleString('id-ID') : 'Cek Detail';
+        const catBadge = p.category === 'streaming_apps' ? '🎬 Streaming' : (p.category === 'smm' ? '📈 SMM' : '📦 Umum');
+        
+        html += `
+          <div class="prod-card">
+            <div class="prod-card-info">
+              <div class="prod-card-title">${escapeHtml(p.normalized_title || p.title)}</div>
+              <div class="prod-card-meta">
+                <span>🏷️ ${catBadge}</span>
+                <span class="prod-card-price">💰 ${price}</span>
+              </div>
+            </div>
+            <div class="prod-card-actions">
+              <button class="btn btn-sm" onclick="openEditProductModal('${p.id}')">✏️ Edit</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteProduct('${p.id}', '${escapeHtml(p.normalized_title || p.title)}')">🗑️</button>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+      updateLivePreviews();
+    }
+
+    // 4. Edit / Add Product Modal Logic
+    function openAddProductModal() {
+      document.getElementById('modal-title-text').innerText = '➕ Tambah Produk Baru';
+      document.getElementById('edit-id').value = 'custom_' + Date.now();
+      document.getElementById('edit-title').value = '';
+      document.getElementById('edit-category').value = 'streaming_apps';
+      document.getElementById('edit-min-price').value = '';
+      document.getElementById('edit-content').value = '» 1 Bulan : Rp \n» Garansi Aktif\n';
+      updateModalWAPreview();
+      document.getElementById('product-modal').classList.add('open');
+    }
+
+    function openEditProductModal(id) {
+      const p = allProducts.find(x => x.id === id);
+      if (!p) return;
+
+      document.getElementById('modal-title-text').innerText = '✏️ Edit: ' + (p.normalized_title || p.title);
+      document.getElementById('edit-id').value = p.id;
+      document.getElementById('edit-title').value = p.normalized_title || p.title;
+      document.getElementById('edit-category').value = p.category || 'streaming_apps';
+      document.getElementById('edit-min-price').value = p.min_price || '';
+      document.getElementById('edit-content').value = p.normalized_content || p.clean_content || '';
+      updateModalWAPreview();
+      document.getElementById('product-modal').classList.add('open');
     }
 
     function closeProductModal() {
-      document.getElementById('edit-box').style.display = 'none';
+      document.getElementById('product-modal').classList.remove('open');
     }
 
-    function editProduct(id) {
-      const p = allProducts.find(x => x.id === id);
-      if (p) openProductModal(p);
+    function insertHelperText(txt) {
+      const area = document.getElementById('edit-content');
+      area.value += txt;
+      area.focus();
+      updateModalWAPreview();
     }
 
-    // Save Product Directly to Supabase
+    function updateModalWAPreview() {
+      const title = document.getElementById('edit-title').value.trim() || 'NAMA PRODUK';
+      const content = document.getElementById('edit-content').value.trim() || '» Rincian paket...';
+      const sample = `*📋 ${title.toUpperCase()}*\n━━━━━━━━━━━━━━━━━━━━\n${content}\n━━━━━━━━━━━━━━━━━━━━\n💡 _Ketik *format order* untuk memesan._`;
+      document.getElementById('modal-wa-preview').innerText = sample;
+    }
+
+    document.getElementById('edit-title').addEventListener('input', updateModalWAPreview);
+    document.getElementById('edit-content').addEventListener('input', updateModalWAPreview);
+
     async function saveProductToSupabase() {
-      if (!supabase) return alert('Hubungkan Supabase terlebih dahulu di tab Setup!');
       const id = document.getElementById('edit-id').value;
       const title = document.getElementById('edit-title').value.trim().toUpperCase();
       const category = document.getElementById('edit-category').value;
       const content = document.getElementById('edit-content').value.trim();
+      const minPrice = parseInt(document.getElementById('edit-min-price').value || 0, 10);
 
       if (!title) return alert('Nama produk wajib diisi!');
-
-      const digits = content.replace(/[^0-9]/g, '');
-      const minPrice = digits ? parseInt(digits.slice(0, 5), 10) : 0;
 
       const payload = {
         id,
@@ -700,27 +1279,46 @@
       if (error) {
         alert('Gagal simpan ke Supabase: ' + error.message);
       } else {
-        showNotif('✅ Produk tersimpan di Supabase! Bot WA akan otomatis menyinkronkan.');
+        showBanner('✅ Produk berhasil disimpan ke Supabase!');
         closeProductModal();
-        loadAllDataFromSupabase();
+        loadProducts();
       }
     }
 
-    async function deleteProductFromSupabase(id, name) {
-      if (!confirm(`Hapus produk "${name}" dari Supabase?`)) return;
+    async function deleteProduct(id, name) {
+      if (!confirm(`Hapus produk "${name}" secara permanen?`)) return;
       const { error } = await supabase.from('products').delete().eq('id', id);
       if (error) {
         alert('Gagal hapus: ' + error.message);
       } else {
-        showNotif('🗑️ Produk dihapus dari Supabase!');
-        loadAllDataFromSupabase();
+        showBanner('🗑️ Produk berhasil dihapus!');
+        loadProducts();
       }
     }
 
-    // Save Templates to Supabase
-    async function saveTemplatesToSupabase() {
-      if (!supabase) return alert('Hubungkan Supabase terlebih dahulu di tab Setup!');
+    // 5. Templates (List & Detail WA)
+    async function loadTemplates() {
+      try {
+        const { data: tpls } = await supabase.from('templates').select('*');
+        if (tpls) {
+          tpls.forEach(t => {
+            if (t.id === 'list') {
+              document.getElementById('tpl-list-header').value = t.header || '';
+              document.getElementById('tpl-list-footer').value = t.footer || '';
+            }
+            if (t.id === 'detail') {
+              document.getElementById('tpl-detail-header').value = t.header || '';
+              document.getElementById('tpl-detail-footer').value = t.footer || '';
+            }
+          });
+          updateLivePreviews();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
 
+    async function saveTemplatesToSupabase() {
       const listHeader = document.getElementById('tpl-list-header').value;
       const listFooter = document.getElementById('tpl-list-footer').value;
       const detailHeader = document.getElementById('tpl-detail-header').value;
@@ -734,14 +1332,29 @@
       if (error) {
         alert('Gagal simpan template: ' + error.message);
       } else {
-        showNotif('✅ Tampilan List & Detail tersimpan di Supabase!');
+        showBanner('✅ Template List & Detail berhasil disimpan!');
+        updateLivePreviews();
       }
     }
 
-    // Save Config to Supabase
-    async function saveConfigToSupabase() {
-      if (!supabase) return alert('Hubungkan Supabase terlebih dahulu di tab Setup!');
+    // 6. Config & Private Chat
+    async function loadConfig() {
+      try {
+        const { data: cfg } = await supabase.from('bot_config').select('*').eq('id', 'main_config').single();
+        if (cfg) {
+          document.getElementById('cfg-admin-contact').value = cfg.admin_contact || '';
+          document.getElementById('cfg-explanation').value = cfg.private_chat_explanation || '';
+          if (cfg.access_code) {
+            currentAccessCode = cfg.access_code;
+          }
+          updateLivePreviews();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
 
+    async function saveConfigToSupabase() {
       const adminContact = document.getElementById('cfg-admin-contact').value.replace(/[^0-9]/g, '');
       const explanation = document.getElementById('cfg-explanation').value;
 
@@ -755,29 +1368,124 @@
       if (error) {
         alert('Gagal simpan config: ' + error.message);
       } else {
-        showNotif('✅ Pengaturan Chat Pribadi tersimpan di Supabase!');
+        showBanner('✅ Pengaturan Chat Pribadi tersimpan!');
+        updateLivePreviews();
       }
     }
 
-    function updateLivePreview() {
-      const contact = document.getElementById('cfg-admin-contact').value || '628xxxxxxxxxx';
-      const expl = document.getElementById('cfg-explanation').value || 'Maaf, silakan chat admin di nomor berikut.';
-      
-      const sample = `Halo *Budi*! 👋\n\n📌 *Status Grup:* Terdeteksi Anda bergabung di grup: *REIMAL STORE OFFICIAL* ✅\n\n💬 *Pesan:* ${expl}\n📞 *Kontak Admin:* wa.me/${contact}\n\n────────────────\n💡 _Anda tetap dapat mengecek harga di sini:_\n• Ketik *list* atau *daftar* ➔ Mode Ringkas\n• Ketik *detail list* ➔ Mode Detail Lengkap\n• Ketik langsung nama produk (contoh: *netflix*, *spotify*, *ig*)`;
+    // 7. Security & New Access Code
+    async function saveNewAccessCode() {
+      const newCode = document.getElementById('sec-new-code').value.trim();
+      if (!newCode) return alert('Kode akses baru tidak boleh kosong!');
 
-      document.getElementById('wa-preview-box').innerText = sample;
+      const { error } = await supabase.from('bot_config').upsert({
+        id: 'main_config',
+        access_code: newCode,
+        updated_at: new Date().toISOString()
+      });
+
+      if (error) {
+        alert('Gagal mengubah kode akses: ' + error.message);
+      } else {
+        currentAccessCode = newCode;
+        localStorage.setItem('reimal_admin_pin', newCode);
+        alert('🎉 Kode akses berhasil diperbarui menjadi: ' + newCode);
+        document.getElementById('sec-new-code').value = '';
+      }
     }
 
-    document.getElementById('cfg-admin-contact').addEventListener('input', updateLivePreview);
-    document.getElementById('cfg-explanation').addEventListener('input', updateLivePreview);
+    // 8. Registered Groups
+    async function loadGroups() {
+      try {
+        const { data: groups } = await supabase.from('registered_groups').select('*').order('name');
+        const container = document.getElementById('groups-list-container');
+        if (!groups || groups.length === 0) {
+          container.innerHTML = '<div style="color: #666; padding: 10px; text-align: center;">Belum ada grup yang terdaftar. Ketik <strong>daftarkan grup</strong> di grup WA Anda.</div>';
+          return;
+        }
 
+        let html = '';
+        groups.forEach(g => {
+          html += `
+            <div style="border-bottom: 1px solid #ccc; padding: 6px 4px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>${escapeHtml(g.name)}</strong>
+                <div style="font-size: 10px; color: #666;">ID: ${g.id}</div>
+              </div>
+              <span class="${g.active ? 'badge-online' : 'badge-offline'}">${g.active ? '🟢 Aktif' : '🔴 Nonaktif'}</span>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // 9. Live Previews
+    function updateLivePreviews() {
+      // List Preview
+      const lh = document.getElementById('tpl-list-header').value || '🛒 *KATALOG REIMAL STORE*\n━━━━━━━━━━━━━━━━━━━━';
+      const lf = document.getElementById('tpl-list-footer').value || '━━━━━━━━━━━━━━━━━━━━\n💡 _Ketik nama produk untuk cek harga._';
+      const sampleList = `${lh}\n• *NETFLIX PREMIUM* : Mulai Rp 18.000\n• *SPOTIFY PREMIUM* : Mulai Rp 15.000\n• *INSTAGRAM FOLLOWERS* : Mulai Rp 5.000\n${lf}`;
+      document.getElementById('preview-list-box').innerText = sampleList;
+
+      // Detail Preview
+      const dh = document.getElementById('tpl-detail-header').value || '📋 *PRICELIST LENGKAP REIMAL STORE*\n━━━━━━━━━━━━━━━━━━━━';
+      const df = document.getElementById('tpl-detail-footer').value || '━━━━━━━━━━━━━━━━━━━━\n💡 _Ketik format order untuk memesan._';
+      const sampleDetail = `${dh}\n*🎬 NETFLIX PREMIUM*\n» 1 Bulan 1 Profile : Rp 25.000\n» 1 Bulan Sharing : Rp 18.000\n\n*🎬 SPOTIFY PREMIUM*\n» 1 Bulan Individual : Rp 15.000\n${df}`;
+      document.getElementById('preview-detail-box').innerText = sampleDetail;
+
+      // PC Preview
+      const contact = document.getElementById('cfg-admin-contact').value || '6289531946313';
+      const expl = document.getElementById('cfg-explanation').value || 'Maaf, silakan chat admin di nomor berikut.';
+      const samplePC = `Halo *Budi*! 👋\n\n📌 *Status Grup:* Terdeteksi bergabung di grup: *REIMAL STORE OFFICIAL* ✅\n\n💬 *Pesan:* ${expl}\n📞 *Kontak Admin:* wa.me/${contact}\n\n────────────────\n💡 _Anda tetap dapat mengecek harga di sini:_\n• Ketik *list* ➔ Mode Ringkas\n• Ketik nama produk (contoh: *netflix*)`;
+      document.getElementById('preview-pc-box').innerText = samplePC;
+    }
+
+    document.getElementById('tpl-list-header').addEventListener('input', updateLivePreviews);
+    document.getElementById('tpl-list-footer').addEventListener('input', updateLivePreviews);
+    document.getElementById('tpl-detail-header').addEventListener('input', updateLivePreviews);
+    document.getElementById('tpl-detail-footer').addEventListener('input', updateLivePreviews);
+    document.getElementById('cfg-admin-contact').addEventListener('input', updateLivePreviews);
+    document.getElementById('cfg-explanation').addEventListener('input', updateLivePreviews);
+
+    async function manualSyncFromSupabase() {
+      showBanner('⏳ Sedang menyinkronkan data...');
+      await loadAllData();
+      showBanner('✅ Sinkronisasi Supabase Selesai!');
+    }
+
+    async function testSupabaseConnection() {
+      try {
+        const { count, error } = await supabase.from('products').select('*', { count: 'exact', head: true });
+        if (error) throw error;
+        alert(`🎉 Koneksi Berhasil! Database Supabase terhubung dengan total ${count} produk.`);
+      } catch (e) {
+        alert('❌ Gagal koneksi: ' + e.message);
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+      });
+    }
+
+    // Clock
     setInterval(() => {
       const now = new Date();
       document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }, 1000);
 
+    // Enter key for login
+    document.getElementById('auth-input-code').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
     // Run on startup
-    window.addEventListener('DOMContentLoaded', initSupabase);
+    window.addEventListener('DOMContentLoaded', checkAuthOnLoad);
   </script>
 </body>
 </html>
