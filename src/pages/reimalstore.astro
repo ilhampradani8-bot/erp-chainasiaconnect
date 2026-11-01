@@ -1,15 +1,14 @@
----
-// Astro Native Page: Reimal Store Windows 95 Admin Panel
----
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Reimal Store - Admin Control Panel 95 (Astro Edition)</title>
-  <link rel="icon" type="image/png" href="/logo.png" />
-  <!-- Supabase JS Client v2 CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>Reimal Store - Admin Control Panel 95</title>
+  <!-- Supabase JS Client (Local first + Multi-CDN fallback) -->
+  <script src="/supabase.js" is:inline></script>
+  <script src="supabase.js" is:inline></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" is:inline></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2" is:inline></script>
   <style>
     * {
       box-sizing: border-box;
@@ -602,7 +601,9 @@
 </head>
 <body>
 
+  <!-- ========================================== -->
   <!-- 1. DIALOG KODE AKSES (SECURITY AUTH MODAL) -->
+  <!-- ========================================== -->
   <div id="auth-modal" class="auth-overlay">
     <div class="auth-window win-outset">
       <div class="title-bar">
@@ -647,7 +648,9 @@
     </div>
   </div>
 
+  <!-- ========================================== -->
   <!-- 2. MAIN APP WINDOW -->
+  <!-- ========================================== -->
   <div class="app-wrapper win-outset">
     
     <!-- Top Title Bar -->
@@ -732,7 +735,9 @@
         
         <div id="notif-banner" class="notif-banner"></div>
 
+        <!-- ========================================== -->
         <!-- TAB 1: KELOLA PRODUK & HARGA (PER-PRODUK) -->
+        <!-- ========================================== -->
         <div id="page-products" class="page-pane active">
           
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
@@ -766,7 +771,9 @@
           </div>
         </div>
 
+        <!-- ========================================== -->
         <!-- TAB 2: TAMPILAN MODE LIST WA -->
+        <!-- ========================================== -->
         <div id="page-list-mode" class="page-pane">
           <div style="font-weight: bold; font-size: 14px; color: #000080; margin-bottom: 8px;">🎨 PENGATURAN TAMPILAN MODE LIST</div>
           
@@ -796,7 +803,9 @@
           </div>
         </div>
 
+        <!-- ========================================== -->
         <!-- TAB 3: TAMPILAN MODE DETAIL WA -->
+        <!-- ========================================== -->
         <div id="page-detail-mode" class="page-pane">
           <div style="font-weight: bold; font-size: 14px; color: #000080; margin-bottom: 8px;">📋 PENGATURAN TAMPILAN DETAIL LIST</div>
           
@@ -826,7 +835,9 @@
           </div>
         </div>
 
+        <!-- ========================================== -->
         <!-- TAB 4: AUTO-REPLY CHAT PRIBADI (PC) -->
+        <!-- ========================================== -->
         <div id="page-private-chat" class="page-pane">
           <div style="font-weight: bold; font-size: 14px; color: #000080; margin-bottom: 8px;">💬 AUTO-REPLY CHAT PRIBADI (PC)</div>
 
@@ -859,7 +870,9 @@
           </div>
         </div>
 
+        <!-- ========================================== -->
         <!-- TAB 5: GRUP WHATSAPP TERDAFTAR -->
+        <!-- ========================================== -->
         <div id="page-groups" class="page-pane">
           <div style="font-weight: bold; font-size: 14px; color: #000080; margin-bottom: 8px;">👥 DAFTAR GRUP WHATSAPP TERDAFTAR</div>
           
@@ -871,12 +884,14 @@
               </div>
             </div>
             <div style="font-size: 11px; color: #555; margin-top: 8px;">
-              💡 <em>Untuk mendaftarkan grup baru, ketik <strong>daftarkan grup</strong> langsung di grup WA Anda.</em>
+              💡 <em>Untuk mendaftarkan grup baru, ketik <strong>daftarkan grup</strong> langsung di grup WhatsApp yang bersangkutan.</em>
             </div>
           </div>
         </div>
 
+        <!-- ========================================== -->
         <!-- TAB 6: KEAMANAN & KONEKSI SUPABASE -->
+        <!-- ========================================== -->
         <div id="page-security" class="page-pane">
           <div style="font-weight: bold; font-size: 14px; color: #000080; margin-bottom: 8px;">⚙️ KEAMANAN KODE AKSES & CLOUD</div>
 
@@ -925,7 +940,9 @@
 
   </div>
 
+  <!-- ========================================== -->
   <!-- 3. MODAL EDIT & TAMBAH PRODUK -->
+  <!-- ========================================== -->
   <div id="product-modal" class="modal-overlay">
     <div class="modal-window win-outset">
       <div class="title-bar">
@@ -957,35 +974,45 @@
         </div>
 
         <div class="form-group">
-          <label>Isi Pricelist / Rincian Varian:</label>
-          <div style="display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap;">
-            <button type="button" class="btn btn-sm" onclick="insertHelperText('» 1 Bulan : Rp ')">+ 1 Bulan</button>
-            <button type="button" class="btn btn-sm" onclick="insertHelperText('» Private 1 Profil : Rp ')">+ Profil</button>
-            <button type="button" class="btn btn-sm" onclick="insertHelperText('» Full Garansi Aktif\n')">+ Garansi</button>
-            <button type="button" class="btn btn-sm" onclick="insertHelperText('» Min Order: 100 | Max: 10.000\n')">+ SMM Min</button>
+          <label>Isi Lengkap Produk (Judul, Paket, Harga, Spasi & Enter Bebas):</label>
+          <div style="font-size: 11px; color: #555; margin-bottom: 6px;">
+            Setiap tombol enter, spasi kosong, dan emoji yang Anda ketik di bawah ini akan <strong>persis sama</strong> tampil di WhatsApp:
           </div>
-          <textarea id="edit-content" rows="6" placeholder="» 1 Bulan : Rp 35.000..."></textarea>
+          <!-- Quick insert helpers -->
+          <div style="display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-sm" onclick="insertHelperText('\n\n')">⏎ Spasi / Enter</button>
+            <button type="button" class="btn btn-sm" onclick="insertHelperText('━━━━━━━━━━━━━━━━━━━━\n')">━━━ Pembatas</button>
+            <button type="button" class="btn btn-sm" onclick="insertHelperText('» ')">» Panah</button>
+            <button type="button" class="btn btn-sm" onclick="insertHelperText('• ')">• Bullet</button>
+            <button type="button" class="btn btn-sm" onclick="insertHelperText('Rp ')">💰 Rp</button>
+            <button type="button" class="btn btn-sm" onclick="insertHelperText('\nCatatan:\n• Full garansi aktif\n')">⚠️ Catatan</button>
+            <button type="button" class="btn btn-sm" onclick="insertHelperText('\n💡 Ketik *format order* untuk memesan.')">💡 Order</button>
+          </div>
+          <textarea id="edit-content" rows="11" style="font-family: Consolas, 'Courier New', monospace; font-size: 13px; line-height: 1.5; padding: 8px;" placeholder="Tulis isi produk, paket, dan harga bebas di sini. Setiap spasi dan enter akan persis sama tampil di WhatsApp..."></textarea>
         </div>
 
         <div class="groupbox">
-          <span class="groupbox-legend">Simulasi Chat Bot WA untuk Produk Ini</span>
-          <div class="wa-preview-box" style="max-height: 140px;">
-            <div id="modal-wa-preview" class="wa-bubble"></div>
+          <span class="groupbox-legend">Simulasi Live Chat Bot WA (Persis Sesuai Spasi & Enter)</span>
+          <div class="wa-preview-box" style="max-height: 160px;">
+            <div id="modal-wa-preview" class="wa-bubble" style="white-space: pre-wrap; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;"></div>
           </div>
         </div>
 
         <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px;">
           <button type="button" class="btn" onclick="closeProductModal()">Batal</button>
           <button type="button" class="btn btn-primary" onclick="saveProductToSupabase()">
-            <span>💾 Simpan ke Database</span>
+            <span>💾 Simpan ke Database & Bot</span>
           </button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- ========================================== -->
   <!-- 4. JAVASCRIPT LOGIC -->
-  <script is:inline>
+  <!-- ========================================== -->
+  <script>
+    // Supabase Configuration
     const SB_URL = 'https://scsetyfsgycomcipfxkc.supabase.co';
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjc2V0eWZzZ3ljb21jaXBmeGtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1MTgxODksImV4cCI6MjEwOTA5NDE4OX0.e4yzBYv7aPOIhUcgoZBtV9B5Ybs72B9ng2D4Pd8Dnjk';
     const MASTER_KEY = 'Dani22334455@!';
@@ -995,6 +1022,7 @@
     let currentCategoryFilter = 'all';
     let currentAccessCode = 'reimal95';
 
+    // 1. Initial Auth Check
     function checkAuthOnLoad() {
       const savedCode = localStorage.getItem('reimal_admin_pin');
       if (savedCode) {
@@ -1002,48 +1030,72 @@
       }
     }
 
-    async function handleLogin() {
-      const input = document.getElementById('auth-input-code').value.trim();
-      if (!input) return;
+    function handleLogin() {
+      const input = (document.getElementById('auth-input-code').value || '').trim();
+      if (!input) {
+        alert('Silakan masukkan kode akses PIN terlebih dahulu.');
+        return;
+      }
       verifyCode(input, false);
     }
 
     async function verifyCode(input, isAuto = false) {
       const errBox = document.getElementById('auth-error-msg');
-      errBox.style.display = 'none';
+      if (errBox) errBox.style.display = 'none';
 
-      if (input === MASTER_KEY) {
+      // 1. Respon Cepat (Instant Response < 1ms untuk default PIN / Master Key / Stored PIN)
+      const isDefaultMatch = (
+        input === 'reimal95' ||
+        input === MASTER_KEY ||
+        input === currentAccessCode ||
+        input === localStorage.getItem('reimal_admin_pin')
+      );
+
+      if (isDefaultMatch) {
         unlockPanel(input);
         return;
       }
 
+      // 2. Jika bukan default, cek ke Supabase
+      const btn = document.querySelector('#auth-modal button.btn-primary');
+      if (btn) btn.innerText = '⏳ Memeriksa...';
+
       try {
-        if (!supabase) {
+        if (!supabase && window.supabase) {
           supabase = window.supabase.createClient(SB_URL, SB_KEY);
         }
-        const { data: cfg } = await supabase.from('bot_config').select('access_code').eq('id', 'main_config').single();
-        if (cfg && cfg.access_code) {
-          currentAccessCode = cfg.access_code;
+        if (supabase) {
+          const { data: cfg } = await supabase.from('bot_config').select('access_code').eq('id', 'main_config').single();
+          if (cfg && cfg.access_code) {
+            currentAccessCode = cfg.access_code;
+          }
         }
       } catch (e) {
-        console.warn('Could not verify against cloud, using cache');
+        console.warn('Could not verify against cloud:', e);
+      } finally {
+        if (btn) btn.innerText = '🔓 Buka Panel Kendali';
       }
 
-      if (input === currentAccessCode || input === 'reimal95') {
+      if (input === currentAccessCode) {
         unlockPanel(input);
       } else {
-        if (!isAuto) {
+        if (!isAuto && errBox) {
           errBox.style.display = 'block';
         }
       }
     }
 
     function unlockPanel(code) {
-      const remember = document.getElementById('auth-remember-me').checked;
-      if (remember) {
-        localStorage.setItem('reimal_admin_pin', code);
-      }
-      document.getElementById('auth-modal').style.display = 'none';
+      try {
+        const rememberBox = document.getElementById('auth-remember-me');
+        if (rememberBox && rememberBox.checked) {
+          localStorage.setItem('reimal_admin_pin', code);
+        }
+      } catch (e) {}
+
+      const authModal = document.getElementById('auth-modal');
+      if (authModal) authModal.style.display = 'none';
+
       initApp();
     }
 
@@ -1055,12 +1107,22 @@
     }
 
     async function initApp() {
-      if (!supabase) {
-        supabase = window.supabase.createClient(SB_URL, SB_KEY);
+      try {
+        if (!supabase && window.supabase) {
+          supabase = window.supabase.createClient(SB_URL, SB_KEY);
+        }
+        if (supabase) {
+          await loadAllData();
+        } else {
+          console.warn('Waiting for Supabase SDK to initialize...');
+          setTimeout(initApp, 1000);
+        }
+      } catch (err) {
+        console.error('Error in initApp:', err);
       }
-      loadAllData();
     }
 
+    // Sidebar Toggle
     function toggleSidebar() {
       const drawer = document.getElementById('sidebar-drawer');
       const overlay = document.getElementById('sidebar-overlay');
@@ -1091,6 +1153,7 @@
       setTimeout(() => { b.style.display = 'none'; }, duration);
     }
 
+    // 3. Load Data from Supabase
     async function loadAllData() {
       await Promise.all([
         loadProducts(),
@@ -1184,6 +1247,7 @@
       updateLivePreviews();
     }
 
+    // 4. Edit / Add Product Modal Logic
     function openAddProductModal() {
       document.getElementById('modal-title-text').innerText = '➕ Tambah Produk Baru';
       document.getElementById('edit-id').value = 'custom_' + Date.now();
@@ -1222,8 +1286,17 @@
 
     function updateModalWAPreview() {
       const title = document.getElementById('edit-title').value.trim() || 'NAMA PRODUK';
-      const content = document.getElementById('edit-content').value.trim() || '» Rincian paket...';
-      const sample = `*📋 ${title.toUpperCase()}*\n━━━━━━━━━━━━━━━━━━━━\n${content}\n━━━━━━━━━━━━━━━━━━━━\n💡 _Ketik *format order* untuk memesan._`;
+      const content = document.getElementById('edit-content').value || '';
+      
+      let sample = '';
+      if (!content.trim()) {
+        sample = `*📋 PRICELIST ${title.toUpperCase()}*\n━━━━━━━━━━━━━━━━━━━━\n_Belum ada rincian harga/paket._\n━━━━━━━━━━━━━━━━━━━━\n💡 _Ketik *format order* untuk memesan._`;
+      } else if (/^(\*|#|📋|🛒|pricelist)/i.test(content.trim())) {
+        sample = content;
+      } else {
+        sample = `*📋 PRICELIST ${title.toUpperCase()}*\n━━━━━━━━━━━━━━━━━━━━\n${content}\n━━━━━━━━━━━━━━━━━━━━\n💡 _Ketik *format order* untuk memesan._`;
+      }
+
       document.getElementById('modal-wa-preview').innerText = sample;
     }
 
@@ -1234,10 +1307,22 @@
       const id = document.getElementById('edit-id').value;
       const title = document.getElementById('edit-title').value.trim().toUpperCase();
       const category = document.getElementById('edit-category').value;
-      const content = document.getElementById('edit-content').value.trim();
-      const minPrice = parseInt(document.getElementById('edit-min-price').value || 0, 10);
+      const content = document.getElementById('edit-content').value; // Preserve exact spacing, enters & lines
 
       if (!title) return alert('Nama produk wajib diisi!');
+
+      let minPrice = parseInt(document.getElementById('edit-min-price').value || 0, 10);
+      if (!minPrice || minPrice <= 0) {
+        // Auto-extract lowest price from content
+        const matches = content.match(/Rp\s*([\d\.]+)|:\s*([\d\.]+)/gi);
+        if (matches) {
+          const nums = matches.map(m => parseInt(m.replace(/[^0-9]/g, ''), 10)).filter(n => n > 100);
+          if (nums.length > 0) minPrice = Math.min(...nums);
+        }
+      }
+
+      const saveBtn = document.querySelector('#product-modal button.btn-primary');
+      if (saveBtn) saveBtn.innerText = '⏳ Menyimpan...';
 
       const payload = {
         id,
@@ -1246,17 +1331,23 @@
         category,
         clean_content: content,
         normalized_content: content,
-        min_price: minPrice,
+        min_price: minPrice || 0,
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase.from('products').upsert(payload);
-      if (error) {
-        alert('Gagal simpan ke Supabase: ' + error.message);
-      } else {
-        showBanner('✅ Produk berhasil disimpan ke Supabase!');
-        closeProductModal();
-        loadProducts();
+      try {
+        const { error } = await supabase.from('products').upsert(payload);
+        if (error) {
+          alert('Gagal simpan ke Supabase: ' + error.message);
+        } else {
+          showBanner('✅ Produk tersimpan! Spasi, enter & format langsung aktif di bot WhatsApp.');
+          closeProductModal();
+          await loadProducts();
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        if (saveBtn) saveBtn.innerText = '💾 Simpan ke Database & Bot';
       }
     }
 
@@ -1271,6 +1362,7 @@
       }
     }
 
+    // 5. Templates (List & Detail WA)
     async function loadTemplates() {
       try {
         const { data: tpls } = await supabase.from('templates').select('*');
@@ -1311,6 +1403,7 @@
       }
     }
 
+    // 6. Config & Private Chat
     async function loadConfig() {
       try {
         const { data: cfg } = await supabase.from('bot_config').select('*').eq('id', 'main_config').single();
@@ -1346,6 +1439,7 @@
       }
     }
 
+    // 7. Security & New Access Code
     async function saveNewAccessCode() {
       const newCode = document.getElementById('sec-new-code').value.trim();
       if (!newCode) return alert('Kode akses baru tidak boleh kosong!');
@@ -1366,6 +1460,7 @@
       }
     }
 
+    // 8. Registered Groups
     async function loadGroups() {
       try {
         const { data: groups } = await supabase.from('registered_groups').select('*').order('name');
@@ -1393,17 +1488,21 @@
       }
     }
 
+    // 9. Live Previews
     function updateLivePreviews() {
+      // List Preview
       const lh = document.getElementById('tpl-list-header').value || '🛒 *KATALOG REIMAL STORE*\n━━━━━━━━━━━━━━━━━━━━';
       const lf = document.getElementById('tpl-list-footer').value || '━━━━━━━━━━━━━━━━━━━━\n💡 _Ketik nama produk untuk cek harga._';
       const sampleList = `${lh}\n• *NETFLIX PREMIUM* : Mulai Rp 18.000\n• *SPOTIFY PREMIUM* : Mulai Rp 15.000\n• *INSTAGRAM FOLLOWERS* : Mulai Rp 5.000\n${lf}`;
       document.getElementById('preview-list-box').innerText = sampleList;
 
+      // Detail Preview
       const dh = document.getElementById('tpl-detail-header').value || '📋 *PRICELIST LENGKAP REIMAL STORE*\n━━━━━━━━━━━━━━━━━━━━';
       const df = document.getElementById('tpl-detail-footer').value || '━━━━━━━━━━━━━━━━━━━━\n💡 _Ketik format order untuk memesan._';
       const sampleDetail = `${dh}\n*🎬 NETFLIX PREMIUM*\n» 1 Bulan 1 Profile : Rp 25.000\n» 1 Bulan Sharing : Rp 18.000\n\n*🎬 SPOTIFY PREMIUM*\n» 1 Bulan Individual : Rp 15.000\n${df}`;
       document.getElementById('preview-detail-box').innerText = sampleDetail;
 
+      // PC Preview
       const contact = document.getElementById('cfg-admin-contact').value || '6289531946313';
       const expl = document.getElementById('cfg-explanation').value || 'Maaf, silakan chat admin di nomor berikut.';
       const samplePC = `Halo *Budi*! 👋\n\n📌 *Status Grup:* Terdeteksi bergabung di grup: *REIMAL STORE OFFICIAL* ✅\n\n💬 *Pesan:* ${expl}\n📞 *Kontak Admin:* wa.me/${contact}\n\n────────────────\n💡 _Anda tetap dapat mengecek harga di sini:_\n• Ketik *list* ➔ Mode Ringkas\n• Ketik nama produk (contoh: *netflix*)`;
@@ -1440,15 +1539,18 @@
       });
     }
 
+    // Clock
     setInterval(() => {
       const now = new Date();
       document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }, 1000);
 
+    // Enter key for login
     document.getElementById('auth-input-code').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') handleLogin();
     });
 
+    // Run on startup
     window.addEventListener('DOMContentLoaded', checkAuthOnLoad);
   </script>
 </body>
