@@ -11,17 +11,7 @@
           "value": "reimalstore.chainasiaconnect.co.id"
         }
       ],
-      "destination": "/reimalstore/index.html"
-    },
-    {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "reimalstore.chainasiaconnect.co.id"
-        }
-      ],
-      "destination": "/reimalstore/index.html"
+      "destination": "/reimalstore"
     }
   ]
 }

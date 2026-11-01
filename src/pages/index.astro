@@ -12,6 +12,11 @@ import '../styles/windows90s.css';
     <title>ERP - CHAIN ASIA CONNECT (Accounting System)</title>
     <link rel="icon" type="image/png" href="/logo.png" />
     <link rel="shortcut icon" href="/favicon.ico" />
+    <script is:inline>
+      if (window.location.hostname.includes('reimalstore')) {
+        window.location.replace('/reimalstore');
+      }
+    </script>
   </head>
   <body>
     <WindowsDesktop client:only="react" />
